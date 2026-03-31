@@ -47,6 +47,26 @@ function getGameScore() {
   return Math.floor((S.lifetimeEarned || 0) + (S.totalEarned || 0));
 }
 
+// ── Format durée (secondes → "2h 30m") ────────────────
+function fmtDuration(sec) {
+  if (!sec || sec < 60) return 'moins d\'1m';
+  const h = Math.floor(sec / 3600);
+  const m = Math.floor((sec % 3600) / 60);
+  if (h === 0) return m + 'm';
+  if (h < 24)  return h + 'h ' + (m > 0 ? m + 'm' : '');
+  const d = Math.floor(h / 24);
+  const rh = h % 24;
+  return d + 'j ' + (rh > 0 ? rh + 'h' : '');
+}
+
+// ── Format clics ──────────────────────────────────────
+function fmtClicks(n) {
+  if (!n) return '0';
+  if (n < 1000)  return n.toString();
+  if (n < 1e6)   return (n / 1000).toFixed(1) + 'k';
+  return (n / 1e6).toFixed(2) + 'M';
+}
+
 // ── Formatage notation scientifique ───────────────────
 function fmtScore(n) {
   if (n < 1e4)  return n.toLocaleString('fr-FR') + ' €';
@@ -83,8 +103,12 @@ async function saveScore() {
   const name = getPlayerName();
   if (!name) return;
 
-  const score    = getGameScore();
-  const maxLevel = (typeof S !== 'undefined') ? (S.level || 1) : 1;
+  const score          = getGameScore();
+  const maxLevel       = (typeof S !== 'undefined') ? (S.level || 1) : 1;
+  const totalClicks    = (typeof S !== 'undefined') ? (S.clicks || 0) : 0;
+  const franchises     = (typeof S !== 'undefined') ? (S.franchisesOwned || 0) : 0;
+  const playtime       = (typeof S !== 'undefined') ? (S.playtime || 0) : 0;
+  const achievements   = (typeof S !== 'undefined') ? (S.achUnlocked ? S.achUnlocked.size : 0) : 0;
 
   // Toujours sauvegarder si le score ou le niveau a progressé
   if (score <= _lastSavedScore) return;
@@ -107,10 +131,14 @@ async function saveScore() {
     const becomesFirst  = !currentTop || alreadyFirst || score > currentTop.data().score;
 
     const update = {
-      playerName : name,
+      playerName   : name,
       score,
       maxLevel,
-      updatedAt  : firebase.firestore.FieldValue.serverTimestamp(),
+      totalClicks,
+      franchises,
+      playtime,
+      achievements,
+      updatedAt    : firebase.firestore.FieldValue.serverTimestamp(),
     };
 
     if (becomesFirst) {
@@ -167,7 +195,13 @@ function renderLeaderboard(scores, container) {
     const isMe  = s.id === myId;
     const meCls = isMe ? ' lb-me' : '';
 
-    const lvlBadge = s.maxLevel ? `<span class="lb-lvl">NVL ${s.maxLevel}</span>` : '';
+    const lvlBadge  = s.maxLevel   ? `<span class="lb-lvl">NVL ${s.maxLevel}</span>` : '';
+    const statsLine = `<div class="lb-stats-row">` +
+      (s.totalClicks  !== undefined ? `<span>🖱 ${fmtClicks(s.totalClicks)} clics</span>` : '') +
+      (s.franchises   !== undefined ? `<span>🏪 ${s.franchises} franchise${s.franchises > 1 ? 's' : ''}</span>` : '') +
+      (s.achievements !== undefined ? `<span>🏆 ${s.achievements} trophées</span>` : '') +
+      (s.playtime     !== undefined ? `<span>⏱ ${fmtDuration(s.playtime)}</span>` : '') +
+      `</div>`;
 
     if (rank === 1) {
       const dur = durationSince(s.firstPlaceSince);
@@ -181,7 +215,8 @@ function renderLeaderboard(scores, container) {
             ${lvlBadge}
           </div>
           <div class="lb-first-score">${fmtScore(s.score)}</div>
-          ${dur ? `<div class="lb-first-duration">⏱ Au sommet depuis <strong>${dur}</strong></div>` : ''}
+          ${dur ? `<div class="lb-first-duration">👑 Au sommet depuis <strong>${dur}</strong></div>` : ''}
+          ${statsLine}
         </div>`;
 
     } else if (rank === 2 || rank === 3) {
@@ -189,20 +224,26 @@ function renderLeaderboard(scores, container) {
       const cls    = rank === 2 ? 'lb-silver' : 'lb-bronze';
       html += `
         <div class="lb-podium ${cls}${meCls}">
-          <span class="lb-pod-medal">${medals[rank]}</span>
-          <span class="lb-pod-rank">#${rank}</span>
-          <span class="lb-pod-name">${escHtml(s.playerName)}${isMe ? ' <span class="lb-you">(toi)</span>' : ''}</span>
-          ${lvlBadge}
-          <span class="lb-pod-score">${fmtScore(s.score)}</span>
+          <div class="lb-pod-main">
+            <span class="lb-pod-medal">${medals[rank]}</span>
+            <span class="lb-pod-rank">#${rank}</span>
+            <span class="lb-pod-name">${escHtml(s.playerName)}${isMe ? ' <span class="lb-you">(toi)</span>' : ''}</span>
+            ${lvlBadge}
+            <span class="lb-pod-score">${fmtScore(s.score)}</span>
+          </div>
+          ${statsLine}
         </div>`;
 
     } else {
       html += `
         <div class="lb-rest${meCls}">
-          <span class="lb-rest-rank">#${rank}</span>
-          <span class="lb-rest-name">${escHtml(s.playerName)}${isMe ? ' <span class="lb-you">(toi)</span>' : ''}</span>
-          ${lvlBadge}
-          <span class="lb-rest-score">${fmtScore(s.score)}</span>
+          <div class="lb-rest-main">
+            <span class="lb-rest-rank">#${rank}</span>
+            <span class="lb-rest-name">${escHtml(s.playerName)}${isMe ? ' <span class="lb-you">(toi)</span>' : ''}</span>
+            ${lvlBadge}
+            <span class="lb-rest-score">${fmtScore(s.score)}</span>
+          </div>
+          ${statsLine}
         </div>`;
     }
   });

@@ -9,6 +9,7 @@ const SAVE_KEY = 'barrault_save_v2';
 function saveGame() {
   try {
     const data = {
+      playtime:           S.playtime,
       money:              S.money,
       totalEarned:        S.totalEarned,
       lifetimeEarned:     S.lifetimeEarned,
@@ -91,6 +92,7 @@ function loadGame() {
     const d = JSON.parse(raw);
     const g = (val, def) => val !== undefined && val !== null ? val : def;
 
+    S.playtime            = g(d.playtime, 0);
     S.money               = g(d.money, 500);
     S.totalEarned         = g(d.totalEarned, 0);
     S.lifetimeEarned      = g(d.lifetimeEarned, 0);
@@ -221,6 +223,7 @@ function tick() {
   const now=Date.now(), dt=Math.min((now-last)/1000, 0.1);
   last=now;
 
+  S.playtime += dt;
   if (S.clickBoost>0) S.clickBoost=Math.max(0,S.clickBoost-dt);
 
   tickMalusBonus(dt);

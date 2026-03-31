@@ -508,10 +508,20 @@ body.theme-4 .level-bar-fill{background:linear-gradient(90deg,#cc8800,#ffdd44);}
 .lb-bronze .lb-pod-score{color:#cd7f32;}
 
 /* 4e et 5e place */
-.lb-rest{display:flex;align-items:center;gap:10px;padding:6px 10px;border-radius:7px;margin-bottom:4px;background:#0d1520;border:1px solid #1B5EAB22;}
+.lb-rest{padding:6px 10px;border-radius:7px;margin-bottom:4px;background:#0d1520;border:1px solid #1B5EAB22;}
+.lb-rest-main{display:flex;align-items:center;gap:10px;}
 .lb-rest-rank{font-family:'Press Start 2P',monospace;font-size:7px;color:#3a5a7b;flex-shrink:0;min-width:26px;}
 .lb-rest-name{font-size:11px;color:#6b8eb5;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
 .lb-rest-score{font-size:10px;color:#4a6a8b;flex-shrink:0;}
+
+/* Ligne stats secondaires (commun à tous les rangs) */
+.lb-stats-row{display:flex;flex-wrap:wrap;gap:8px;margin-top:5px;padding-top:5px;border-top:1px solid #ffffff0d;font-size:9px;color:#4a6a8b;}
+.lb-stats-row span{white-space:nowrap;}
+.lb-first .lb-stats-row{justify-content:center;color:#8a7040;}
+
+/* Ajustement podium pour wrapper main */
+.lb-podium{display:flex;flex-direction:column;padding:9px 12px;border-radius:9px;margin-bottom:6px;}
+.lb-pod-main{display:flex;align-items:center;gap:10px;}
 
 /* Mise en évidence du joueur courant */
 .lb-me.lb-first{border-color:#4dff88;animation:greenPulse 2.5s ease-in-out infinite;}
