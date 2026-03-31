@@ -1,0 +1,333 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>BARRAULT — Idle Clicker</title>
+  <link rel="stylesheet" href="style.css">
+  <!-- Firebase SDK (compat) -->
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+</head>
+<body>
+<div id="app">
+
+  <!-- éléments cachés conservés pour compatibilité JS -->
+  <div id="debt-card" style="display:none;"><span id="debt-disp"></span></div>
+  <span id="cat-disp" style="display:none">25</span>
+  <span id="money-disp" style="display:none">500€</span>
+  <span id="rate-disp" style="display:none">+0€/s</span>
+
+  <div class="app-layout">
+
+    <!-- ═══ COLONNE GAUCHE : équipe, manager, commerciaux, dir.zone, centrale ═══ -->
+    <div class="col-left">
+
+      <!-- ÉQUIPE -->
+      <div class="panel">
+        <div class="roster-header">
+          <div class="roster-title">👥 ÉQUIPE <span class="roster-count" id="roster-count-badge">0/7</span></div>
+          <button class="hire-btn" id="hire-btn">+ RECRUTER<br><span id="hire-cost-label" style="color:#ffdd44;">300€</span></button>
+        </div>
+        <div id="team-roster-list"><div style="font-size:10px;color:#4a7a9b;text-align:center;padding:0.8rem 0;font-style:italic;">Aucun vendeur</div></div>
+      </div>
+
+      <!-- MANAGEMENT -->
+      <div class="panel">
+        <div class="panel-title" style="color:#ffdd44;border-bottom-color:#ffdd4433;">🧑‍💼 MANAGEMENT</div>
+        <div id="manager-section-content"></div>
+      </div>
+
+      <!-- COMMERCIAUX -->
+      <div class="panel">
+        <div class="panel-title" style="color:#4dff88;border-bottom-color:#4dff8833;">💼 COMMERCIAUX</div>
+        <div id="commercial-section"></div>
+      </div>
+
+      <!-- DIRECTEURS DE ZONE -->
+      <div id="zone-director" class="zone-panel" style="display:none;">
+        <div class="zone-title">🏆 DIRECTEURS DE ZONE</div>
+        <div id="zone-director-content"></div>
+      </div>
+
+    </div>
+
+    <!-- ═══ COLONNE CENTRE : header, progression, trésorerie, magasin, franchise ═══ -->
+    <div class="col-center">
+
+      <!-- HEADER -->
+      <div class="header">
+        <div class="header-checker"></div>
+        <div class="logo-block">
+          <div class="logo-flag"></div>
+          <div class="logo-text">
+            <div class="brand">BARRAULT</div>
+            <div class="tagline">Toute la pièce auto</div>
+            <div class="location">LE HAILLAN</div>
+          </div>
+        </div>
+        <div class="header-right">
+          <div class="music-ctrl">
+            <button id="music-btn" onclick="toggleMusic()">🔇</button>
+            <input id="music-vol" type="range" min="0" max="100" value="40" oninput="setVolume(this.value)">
+            <button id="sfx-btn" onclick="toggleSfx()" title="Mute/Unmute SFX">🔔</button>
+          </div>
+          <div class="clock-badge" id="clock-badge">Lun 1 Jan 2026<br><span class="salary-due"> </span></div>
+          <button class="ach-open-btn" id="ach-btn" onclick="openAchModal()">🏆 0</button>
+          <button class="lb-open-btn" onclick="openLeaderboard()">⚔ CLASSEMENT</button>
+          <div class="level-badge">NVL <span id="lvl">1</span></div>
+        </div>
+      </div>
+
+      <!-- HUB TRÉSORERIE -->
+      <div class="treasury-hub">
+        <div class="treasury-main">
+          <div class="treasury-label">TRÉSORERIE</div>
+          <div class="treasury-amount" id="treasury-amt">500€</div>
+          <div class="treasury-rate" id="treasury-rate">+0€/s</div>
+        </div>
+        <div class="treasury-details">
+          <div class="treasury-detail"><span class="td-label">CA équipe/mois</span><span class="td-value td-green" id="td-team-ca">—</span></div>
+          <div class="treasury-detail" id="td-comm-ca-row" style="display:none"><span class="td-label">CA commerciaux/mois</span><span class="td-value td-green" id="td-comm-ca">—</span></div>
+          <div class="treasury-detail" id="td-mgr-ca-row" style="display:none"><span class="td-label">Revenus manager/mois</span><span class="td-value td-green" id="td-mgr-ca">—</span></div>
+          <div class="treasury-detail" id="td-boost-row" style="display:none"><span class="td-label">⚡ BOOST</span><span class="td-value" style="color:#ffdd44">×2.5 actif</span></div>
+          <div class="treasury-detail" id="td-malus-row" style="display:none"><span class="td-label">⚠ MALUS</span><span class="td-value td-red">prod. −20%</span></div>
+          <span id="td-charges" style="display:none">—</span>
+          <span id="td-debt-row" style="display:none"></span>
+          <span id="td-debt" style="display:none">0</span>
+        </div>
+      </div>
+
+      <!-- MAGASIN + JOURNAL -->
+      <div class="panel">
+        <div class="magasin-header">
+          <div class="panel-title" style="margin:0;padding:0;border:none;">★ Magasin — Cliquer pour booster</div>
+          <div class="level-bar-inline">
+            <div class="level-bar-label">NVL <span id="lvl2">1</span></div>
+            <div class="level-bar-bg"><div class="level-bar-fill" id="lvl-bar" style="width:0%"></div></div>
+            <div class="level-bar-next" id="lvl-next">XP: 0 / 35</div>
+            <div class="level-bar-stats"><span id="clients-disp">0</span> clients · <span id="clicks-disp">0 clic</span></div>
+          </div>
+        </div>
+        <div class="scene-wrapper" id="clicker">
+          <div class="click-hint">CLIQUER: <span id="click-val">+5€</span><br><span style="color:#ffaa00;font-size:7px;" id="click-chance">15% client</span></div>
+          <div class="boost-indicator" id="boost-ind">⚡ BOOST ×2.5</div>
+          <img id="shop-img" class="pixel-scene" src="png/magasin-empty.png" alt="Magasin">
+          <div class="cust-layer" id="cust-area"></div>
+        </div>
+        <div class="panel-title">▶ Journal d'activité</div>
+        <div class="log-panel" id="log"></div>
+      </div>
+
+      <!-- FRANCHISE HUB -->
+      <div class="franchise-hub">
+        <div class="franchise-hub-top">
+          <div class="franchise-hub-left">
+            <span class="franchise-hub-icon">🏪</span>
+            <div>
+              <div class="franchise-hub-title">FRANCHISE</div>
+              <div class="franchise-hub-sub" id="fran-count-disp" style="display:none">—</div>
+            </div>
+          </div>
+          <div class="franchise-progress-section">
+            <div class="franchise-prog-label" id="fran-prog-label">0 / 150M€ gagnés</div>
+            <div class="franchise-prog-bg"><div class="franchise-prog-fill" id="fran-prog-fill" style="width:0%"></div></div>
+          </div>
+          <div id="fran-eligible-area" class="franchise-eligible" style="display:none">
+            <div class="franchise-bonus-preview" id="fran-bonus-preview">×2.00</div>
+            <button class="franchise-claim-btn" id="fran-claim-btn" onclick="claimFranchise()">FRANCHISER !</button>
+          </div>
+          <div id="fran-mult-display" class="franchise-mult-display" style="display:none">
+            ×<span id="fran-mult-val">1.00</span> actif
+          </div>
+        </div>
+        <div class="franchise-tree" id="franchise-tree-nodes"></div>
+      </div>
+
+    </div>
+
+    <!-- ═══ COLONNE DROITE : amél.clic, amél.magasin, labo, pub TV ═══ -->
+    <div class="col-right">
+
+      <!-- AMÉLIORATION CLIC -->
+      <div class="panel">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:7px;">
+          <div class="panel-title" style="margin:0;padding:0;border:none;">🖱️ AMÉLIORATION CLIC</div>
+          <button class="tree-open-btn" onclick="openClickTree()">🌳</button>
+        </div>
+        <div id="click-upg-row" style="display:flex;align-items:center;gap:8px;min-height:36px;"></div>
+      </div>
+
+      <!-- AMÉLIORATIONS MAGASIN -->
+      <div class="panel">
+        <div class="panel-title">★ Améliorations Magasin</div>
+        <div class="upgrades-list" id="upg-list"></div>
+      </div>
+
+      <!-- LABO DE RECHERCHE -->
+      <div id="zone-lab" class="zone-panel" style="display:none;">
+        <div class="zone-title">🔬 LABO DE RECHERCHE</div>
+        <div id="zone-lab-content"></div>
+      </div>
+
+      <!-- PUB TV -->
+      <div id="zone-tvads" class="zone-panel" style="display:none;">
+        <div class="zone-title">📺 PUB TV</div>
+        <div id="zone-tvads-content"></div>
+      </div>
+
+      <!-- CENTRALE D'APPEL -->
+      <div id="zone-callcenter" class="zone-panel" style="display:none;">
+        <div class="zone-title">📞 CENTRALE D'APPEL</div>
+        <div id="zone-callcenter-content"></div>
+      </div>
+
+    </div>
+
+  </div><!-- /.app-layout -->
+
+</div><!-- /#app -->
+
+<!-- MODAL RECRUTEMENT -->
+<div id="hire-modal" class="modal-overlay" style="display:none;">
+  <div class="modal-box">
+    <div class="modal-title">🎯 RECRUTEMENT</div>
+    <div class="modal-sub" id="modal-sub">Choisissez un candidat</div>
+    <div class="candidates-grid" id="candidates-grid"></div>
+    <div class="modal-actions">
+      <button class="modal-btn confirm" id="modal-confirm" disabled>✓ EMBAUCHER</button>
+      <button class="modal-btn reroll" id="modal-reroll">🔄 RELANCER</button>
+      <button class="modal-btn cancel" id="modal-cancel">✕ Annuler</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL FOURNISSEUR -->
+<div id="supplier-modal" class="modal-overlay" style="display:none;">
+  <div class="modal-box" style="border-color:#4dc8ff;max-width:620px;">
+    <div class="modal-title" style="color:#4dc8ff;" id="supplier-modal-title">📦 ACCORD FOURNISSEUR</div>
+    <div class="modal-sub">Un partenaire s'impose — choisissez votre accord exclusif</div>
+    <div class="supplier-grid" id="supplier-grid"></div>
+    <div class="modal-actions">
+      <button class="modal-btn confirm" id="supplier-confirm" disabled onclick="confirmSupplier()">✓ SIGNER L'ACCORD</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL PRIME -->
+<div id="bonus-modal" class="modal-overlay" style="display:none;">
+  <div class="modal-box bonus-box" id="bonus-box">
+    <div class="modal-title bonus" id="bonus-modal-title">💰 DEMANDE DE PRIME</div>
+    <div class="bonus-profile">
+      <canvas id="bonus-avatar" width="68" height="68" style="border-radius:9px;image-rendering:pixelated;border:2px solid #ffaa0055;"></canvas>
+      <div class="bonus-name" id="bonus-seller-name">—</div>
+      <div class="bonus-amount" id="bonus-amount-disp">0€</div>
+      <div class="bonus-speech" id="bonus-speech-text">...</div>
+      <div class="bonus-risk" id="bonus-risk-text"></div>
+    </div>
+    <div class="modal-actions">
+      <button class="modal-btn accept-bonus" id="bonus-accept">✓ Accorder</button>
+      <button class="modal-btn refuse-bonus" id="bonus-refuse">✕ Refuser</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL ÉVÉNEMENT -->
+<div id="event-modal" class="modal-overlay" style="display:none;">
+  <div class="modal-box event-box" id="event-box">
+    <div class="modal-title" id="event-title">📋 ÉVÉNEMENT</div>
+    <div class="event-icon" id="event-icon">📋</div>
+    <div class="event-desc" id="event-desc">...</div>
+    <div class="event-impact" id="event-impact"></div>
+    <div class="modal-actions"><button class="modal-btn event-ok" id="event-ok">OK</button></div>
+  </div>
+</div>
+
+<!-- MODAL AUGMENTATION -->
+<div id="raise-modal" class="modal-overlay" style="display:none;">
+  <div class="modal-box raise-box">
+    <div class="modal-title raise">📈 DEMANDE D'AUGMENTATION</div>
+    <div class="raise-profile">
+      <canvas id="raise-avatar" width="68" height="68" style="border-radius:9px;image-rendering:pixelated;border:2px solid #ffdd4455;"></canvas>
+      <div class="bonus-name" id="raise-seller-name">—</div>
+      <div class="raise-amount" id="raise-amount-disp">+0%</div>
+      <div class="raise-speech" id="raise-speech-text">...</div>
+      <div class="raise-risk" id="raise-risk-text"></div>
+    </div>
+    <div class="modal-actions">
+      <button class="modal-btn accept-bonus" id="raise-accept">✓ Accorder</button>
+      <button class="modal-btn refuse-bonus" id="raise-refuse">✕ Refuser</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL ACHIEVEMENTS -->
+<div id="ach-modal" class="modal-overlay" style="display:none;">
+  <div class="modal-box" style="border-color:#ffdd44;max-width:560px;">
+    <div class="modal-title" style="color:#ffdd44;">🏆 TROPHÉES</div>
+    <div class="modal-sub" id="ach-modal-sub">0 / 0 débloqués</div>
+    <div class="ach-grid" id="ach-grid"></div>
+    <div class="modal-actions"><button class="modal-btn cancel" onclick="document.getElementById('ach-modal').style.display='none'">Fermer</button></div>
+  </div>
+</div>
+
+<!-- MODAL ARBRE CLIC -->
+<div id="click-tree-modal" class="modal-overlay" style="display:none;">
+  <div class="modal-box" style="border-color:#1B5EAB;max-width:440px;">
+    <div class="modal-title">🌳 AMÉLIORATIONS CLIC</div>
+    <div class="modal-sub">Lecture seule — progression et prochaine amélioration</div>
+    <div id="click-tree-list" style="display:flex;flex-direction:column;gap:5px;max-height:60vh;overflow-y:auto;"></div>
+    <div class="modal-actions"><button class="modal-btn cancel" onclick="document.getElementById('click-tree-modal').style.display='none'">Fermer</button></div>
+  </div>
+</div>
+
+<!-- MODAL OUTILS -->
+<div id="tool-modal" class="modal-overlay" style="display:none;">
+  <div class="modal-box" style="border-color:#4dc8ff;max-width:680px;">
+    <div class="modal-title" style="color:#4dc8ff;">💻 ÉQUIPEMENTS & OUTILS</div>
+    <div class="modal-sub">Choisissez les équipements à installer dans votre magasin</div>
+    <div class="tool-grid" id="tool-grid"></div>
+    <div class="modal-actions">
+      <button class="modal-btn cancel" onclick="document.getElementById('tool-modal').style.display='none'">Fermer</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL PSEUDO (premier lancement) -->
+<div id="pseudo-modal" class="modal-overlay" style="display:none;">
+  <div class="pseudo-box">
+    <div class="pseudo-logo">
+      <div class="pseudo-flag"></div>
+      <div>
+        <div class="pseudo-brand">BARRAULT</div>
+        <div class="pseudo-tagline">Idle Clicker</div>
+      </div>
+    </div>
+    <div class="pseudo-title">Rejoignez le classement</div>
+    <div class="pseudo-sub">Choisissez votre pseudo avant de commencer</div>
+    <input id="pseudo-input" class="pseudo-input" type="text" maxlength="20" placeholder="Votre pseudo (20 car. max)" autocomplete="off" spellcheck="false">
+    <button class="pseudo-play-btn" onclick="confirmPseudo()">▶ JOUER</button>
+    <div class="pseudo-hint">Visible de tous les joueurs dans le classement</div>
+  </div>
+</div>
+
+<!-- MODAL CLASSEMENT -->
+<div id="lb-modal" class="modal-overlay" style="display:none;">
+  <div class="lb-box">
+    <div class="lb-box-title">⚔ Classement des Grands Maîtres<br>de Barrault Idle</div>
+    <div id="lb-content"></div>
+    <div class="modal-actions" style="margin-top:1rem;">
+      <button class="modal-btn cancel" onclick="document.getElementById('lb-modal').style.display='none'">Fermer</button>
+    </div>
+  </div>
+</div>
+
+<script src="state.js"></script>
+<script src="engine.js"></script>
+<script src="ui.js"></script>
+<script src="modals.js"></script>
+<script src="game.js"></script>
+<script src="leaderboard.js"></script>
+<script src="cheat.js"></script>
+</body>
+</html>
