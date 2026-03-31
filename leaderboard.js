@@ -83,33 +83,39 @@ async function saveScore() {
   const name = getPlayerName();
   if (!name) return;
 
-  const score = getGameScore();
+  const score    = getGameScore();
+  const maxLevel = (typeof S !== 'undefined') ? (S.level || 1) : 1;
+
+  // Toujours sauvegarder si le score ou le niveau a progressé
   if (score <= _lastSavedScore) return;
 
   const playerId = getPlayerId();
   const docRef   = _db.collection('scores').doc(playerId);
 
   try {
-    const existing = await docRef.get();
-    const prevScore = existing.exists ? (existing.data().score || 0) : 0;
-    if (prevScore >= score) return; // pas de progression
+    const existing    = await docRef.get();
+    const prevScore   = existing.exists ? (existing.data().score || 0) : 0;
+    const prevLevel   = existing.exists ? (existing.data().maxLevel || 1) : 1;
+
+    // Mise à jour uniquement si progression
+    if (prevScore >= score && prevLevel >= maxLevel) return;
 
     // Est-ce qu'on passe #1 ?
-    const topSnap     = await _db.collection('scores').orderBy('score', 'desc').limit(1).get();
-    const currentTop  = topSnap.empty ? null : topSnap.docs[0];
-    const alreadyFirst = currentTop && currentTop.id === playerId;
-    const becomesFirst = !currentTop || alreadyFirst || score > currentTop.data().score;
+    const topSnap    = await _db.collection('scores').orderBy('score', 'desc').limit(1).get();
+    const currentTop = topSnap.empty ? null : topSnap.docs[0];
+    const alreadyFirst  = currentTop && currentTop.id === playerId;
+    const becomesFirst  = !currentTop || alreadyFirst || score > currentTop.data().score;
 
     const update = {
       playerName : name,
       score,
+      maxLevel,
       updatedAt  : firebase.firestore.FieldValue.serverTimestamp(),
     };
 
     if (becomesFirst) {
       const hadFirstSince = existing.exists && existing.data().firstPlaceSince;
       if (!hadFirstSince || !alreadyFirst) {
-        // Nouveau #1 (ou reprise de la 1ère place) → reset le compteur
         update.firstPlaceSince = firebase.firestore.FieldValue.serverTimestamp();
       }
     }
@@ -161,6 +167,8 @@ function renderLeaderboard(scores, container) {
     const isMe  = s.id === myId;
     const meCls = isMe ? ' lb-me' : '';
 
+    const lvlBadge = s.maxLevel ? `<span class="lb-lvl">NVL ${s.maxLevel}</span>` : '';
+
     if (rank === 1) {
       const dur = durationSince(s.firstPlaceSince);
       html += `
@@ -170,6 +178,7 @@ function renderLeaderboard(scores, container) {
             <span class="lb-first-crown">👑</span>
             <span class="lb-first-rank">#1</span>
             <span class="lb-first-name">${escHtml(s.playerName)}${isMe ? ' <span class="lb-you">(toi)</span>' : ''}</span>
+            ${lvlBadge}
           </div>
           <div class="lb-first-score">${fmtScore(s.score)}</div>
           ${dur ? `<div class="lb-first-duration">⏱ Au sommet depuis <strong>${dur}</strong></div>` : ''}
@@ -183,6 +192,7 @@ function renderLeaderboard(scores, container) {
           <span class="lb-pod-medal">${medals[rank]}</span>
           <span class="lb-pod-rank">#${rank}</span>
           <span class="lb-pod-name">${escHtml(s.playerName)}${isMe ? ' <span class="lb-you">(toi)</span>' : ''}</span>
+          ${lvlBadge}
           <span class="lb-pod-score">${fmtScore(s.score)}</span>
         </div>`;
 
@@ -191,6 +201,7 @@ function renderLeaderboard(scores, container) {
         <div class="lb-rest${meCls}">
           <span class="lb-rest-rank">#${rank}</span>
           <span class="lb-rest-name">${escHtml(s.playerName)}${isMe ? ' <span class="lb-you">(toi)</span>' : ''}</span>
+          ${lvlBadge}
           <span class="lb-rest-score">${fmtScore(s.score)}</span>
         </div>`;
     }

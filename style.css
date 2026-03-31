@@ -480,6 +480,7 @@ body.theme-4 .level-bar-fill{background:linear-gradient(90deg,#cc8800,#ffdd44);}
 .lb-loading,.lb-error,.lb-empty{text-align:center;padding:1.5rem 0;font-size:11px;color:#6b8eb5;font-style:italic;}
 .lb-error{color:#CC1020;}
 .lb-you{font-size:7px;color:#4dff88;font-family:'Press Start 2P',monospace;margin-left:4px;}
+.lb-lvl{font-family:'Press Start 2P',monospace;font-size:6px;color:#4dc8ff;background:#0a1e3a;border:1px solid #1B5EAB44;border-radius:4px;padding:2px 5px;white-space:nowrap;flex-shrink:0;}
 
 /* 1ère place */
 .lb-first{position:relative;background:linear-gradient(135deg,#1a1000,#2a1800);border:2px solid #ffd700;border-radius:12px;padding:1rem 1.2rem;margin-bottom:0.7rem;text-align:center;overflow:hidden;animation:goldPulse 2.5s ease-in-out infinite;}

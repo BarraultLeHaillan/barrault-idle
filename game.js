@@ -207,6 +207,7 @@ function restartGame() {
 function confirmRestart() {
   localStorage.removeItem(SAVE_KEY);
   localStorage.removeItem('barrault_pseudo');
+  localStorage.removeItem('barrault_uid'); // nouvel UID = nouvelle entrée dans le classement
   location.reload();
 }
 
