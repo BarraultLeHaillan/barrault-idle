@@ -205,9 +205,10 @@ function restartGame() {
   if (modal) modal.style.display = 'flex';
 }
 function confirmRestart() {
+  window.removeEventListener('beforeunload', saveGame); // empêche la resauvegarde au reload
   localStorage.removeItem(SAVE_KEY);
   localStorage.removeItem('barrault_pseudo');
-  localStorage.removeItem('barrault_uid'); // nouvel UID = nouvelle entrée dans le classement
+  localStorage.removeItem('barrault_uid');
   location.reload();
 }
 
