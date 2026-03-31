@@ -9,8 +9,11 @@ const SAVE_KEY = 'barrault_save_v2';
 function saveGame() {
   try {
     const data = {
-      playtime:           S.playtime,
-      money:              S.money,
+      playtime:               S.playtime,
+      lifetimeClicks:         S.lifetimeClicks,
+      lifetimePlaytime:       S.lifetimePlaytime,
+      lifetimeAchievements:   S.lifetimeAchievements,
+      money:                  S.money,
       totalEarned:        S.totalEarned,
       lifetimeEarned:     S.lifetimeEarned,
       franchisesOwned:    S.franchisesOwned,
@@ -92,8 +95,11 @@ function loadGame() {
     const d = JSON.parse(raw);
     const g = (val, def) => val !== undefined && val !== null ? val : def;
 
-    S.playtime            = g(d.playtime, 0);
-    S.money               = g(d.money, 500);
+    S.playtime               = g(d.playtime, 0);
+    S.lifetimeClicks         = g(d.lifetimeClicks, 0);
+    S.lifetimePlaytime       = g(d.lifetimePlaytime, 0);
+    S.lifetimeAchievements   = g(d.lifetimeAchievements, 0);
+    S.money                  = g(d.money, 500);
     S.totalEarned         = g(d.totalEarned, 0);
     S.lifetimeEarned      = g(d.lifetimeEarned, 0);
     S.franchisesOwned     = g(d.franchisesOwned, 0);

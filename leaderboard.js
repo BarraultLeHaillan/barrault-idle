@@ -105,10 +105,10 @@ async function saveScore() {
 
   const score          = getGameScore();
   const maxLevel       = (typeof S !== 'undefined') ? (S.level || 1) : 1;
-  const totalClicks    = (typeof S !== 'undefined') ? (S.clicks || 0) : 0;
+  const totalClicks    = (typeof S !== 'undefined') ? ((S.lifetimeClicks || 0) + (S.clicks || 0)) : 0;
   const franchises     = (typeof S !== 'undefined') ? (S.franchisesOwned || 0) : 0;
-  const playtime       = (typeof S !== 'undefined') ? (S.playtime || 0) : 0;
-  const achievements   = (typeof S !== 'undefined') ? (S.achUnlocked ? S.achUnlocked.size : 0) : 0;
+  const playtime       = (typeof S !== 'undefined') ? ((S.lifetimePlaytime || 0) + (S.playtime || 0)) : 0;
+  const achievements   = (typeof S !== 'undefined') ? ((S.lifetimeAchievements || 0) + (S.achUnlocked ? S.achUnlocked.size : 0)) : 0;
 
   // Toujours sauvegarder si le score ou le niveau a progressé
   if (score <= _lastSavedScore) return;

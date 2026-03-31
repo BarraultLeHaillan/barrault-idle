@@ -403,7 +403,10 @@ function claimFranchise() {
   const newMult  = parseFloat((S.franchiseMultiplier + runBonus).toFixed(4));
   const newOwned = S.franchisesOwned + 1;
 
-  S.lifetimeEarned = (S.lifetimeEarned || 0) + S.totalEarned;
+  S.lifetimeEarned       = (S.lifetimeEarned || 0)       + S.totalEarned;
+  S.lifetimeClicks       = (S.lifetimeClicks || 0)       + (S.clicks || 0);
+  S.lifetimePlaytime     = (S.lifetimePlaytime || 0)     + (S.playtime || 0);
+  S.lifetimeAchievements = (S.lifetimeAchievements || 0) + (S.achUnlocked ? S.achUnlocked.size : 0);
   S.money=500; S.totalEarned=0;
   S.clientsServed=0; S.clicks=0; S.clicksThisMonth=0; S.clickBoost=0; S.level=1;
   S.gameDay=1; S.gameMonth=1; S.gameYear=2026; S.dayOfWeek=0; S.timeAccum=0;

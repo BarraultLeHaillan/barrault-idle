@@ -197,6 +197,7 @@ const TV_ADS_UPGRADES = [
 
 const S = {
   money:500, totalEarned:0, lifetimeEarned:0, playtime:0,
+  lifetimeClicks:0, lifetimePlaytime:0, lifetimeAchievements:0,
   franchisesOwned:0, franchiseMultiplier:0,
   clientsServed:0, clicks:0, clicksThisMonth:0, clickBoost:0, level:1,
   gameDay:1, gameMonth:1, gameYear:2026, dayOfWeek:0,
