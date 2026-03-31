@@ -196,8 +196,9 @@ if (hasSave) {
 }
 
 // Autosave toutes les 30 s + à la fermeture de la page
-setInterval(saveGame, 30000);
-window.addEventListener('beforeunload', saveGame);
+let _restarting = false;
+const _saveInterval = setInterval(() => { if (!_restarting) saveGame(); }, 30000);
+window.addEventListener('beforeunload', () => { if (!_restarting) saveGame(); });
 
 // ── RESTART ───────────────────────────────────────────────
 function restartGame() {
@@ -205,7 +206,8 @@ function restartGame() {
   if (modal) modal.style.display = 'flex';
 }
 function confirmRestart() {
-  window.removeEventListener('beforeunload', saveGame); // empêche la resauvegarde au reload
+  _restarting = true;
+  clearInterval(_saveInterval);
   localStorage.removeItem(SAVE_KEY);
   localStorage.removeItem('barrault_pseudo');
   localStorage.removeItem('barrault_uid');
