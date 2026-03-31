@@ -199,6 +199,17 @@ if (hasSave) {
 setInterval(saveGame, 30000);
 window.addEventListener('beforeunload', saveGame);
 
+// ── RESTART ───────────────────────────────────────────────
+function restartGame() {
+  const modal = document.getElementById('restart-modal');
+  if (modal) modal.style.display = 'flex';
+}
+function confirmRestart() {
+  localStorage.removeItem(SAVE_KEY);
+  localStorage.removeItem('barrault_pseudo');
+  location.reload();
+}
+
 // ── BOUCLE PRINCIPALE ─────────────────────────────────────
 let last=Date.now(), clientT=0;
 

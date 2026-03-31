@@ -447,6 +447,8 @@ body.theme-4 .level-bar-fill{background:linear-gradient(90deg,#cc8800,#ffdd44);}
 /* ══════════════════════════════════════════════
    BOUTON CLASSEMENT (header)
    ══════════════════════════════════════════════ */
+.restart-btn{font-family:'Press Start 2P',monospace;font-size:7px;padding:4px 9px;border-radius:6px;border:1px solid #CC102066;background:transparent;color:#ff6677;cursor:pointer;z-index:1;transition:all 0.15s;}
+.restart-btn:hover{background:#CC1020;color:#fff;border-color:#CC1020;}
 .lb-open-btn{font-family:'Press Start 2P',monospace;font-size:7px;padding:4px 10px;border-radius:6px;border:1px solid #ff6600;background:linear-gradient(135deg,#3a1000,#1a0500);color:#ff8833;cursor:pointer;z-index:1;transition:all 0.15s;letter-spacing:1px;animation:lbPulse 3s ease-in-out infinite;}
 .lb-open-btn:hover{background:linear-gradient(135deg,#ff6600,#cc3300);color:#fff;border-color:#ff8833;animation:none;}
 @keyframes lbPulse{0%,100%{box-shadow:0 0 0 0 #ff660000}50%{box-shadow:0 0 8px 2px #ff660055}}
