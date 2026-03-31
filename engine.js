@@ -115,8 +115,8 @@ function advanceTime(dt) {
 function payMonthlyCA() {
   S.clicksThisMonth = 0;
 
-  // CA équipe vendeurs
-  if (S.team.length > 0) {
+  // CA équipe vendeurs (désactivé si Staff Bionique — converti en €/s continu)
+  if (S.team.length > 0 && !S.ultimes.staffBionique) {
     const caBase  = S.team.reduce((sum,k) => sum + (S.sellerCosts[k]||10000)*2, 0);
     const caTotal = Math.round(caBase * fm());
     S.money += caTotal; S.totalEarned += caTotal;
@@ -228,6 +228,37 @@ function tickCallCenter(dt) {
   const gain = S.callCenter.incomeRate * fm() * dt;
   S.money += gain; S.totalEarned += gain;
   S.xpFromClients += S.callCenter.xpRate * dt;
+}
+
+// ── Améliorations Ultimes ─────────────────────────────────
+
+// Staff Bionique : B800 IA — 1 Md€/s fixe
+function tickStaffBionique(dt) {
+  if (!S.ultimes.staffBionique) return;
+  const gain = 1e9 * fm() * dt;
+  S.money += gain;
+  S.totalEarned += gain;
+}
+
+// Data Mining : data center 10 Md€/s
+function tickDataMining(dt) {
+  if (!S.ultimes.dataMining) return;
+  const gain = 1e10 * fm() * dt;
+  S.money += gain;
+  S.totalEarned += gain;
+}
+
+// Chasseur de Têtes : coule un concurrent toutes les 5–30s
+function tickHeadhunter(dt) {
+  if (!S.ultimes.chasseurTetes) return;
+  S.headhunterTimer -= dt;
+  if (S.headhunterTimer <= 0) {
+    S.headhunterTimer = 5 + Math.random() * 25;
+    const gain = 1e10 * fm();
+    S.money += gain;
+    S.totalEarned += gain;
+    addLog(`<span class="ly">🎯 Chasseur de Têtes — concurrent coulé ! +${fmt(gain)}</span>`);
+  }
 }
 
 // ── Achievements ─────────────────────────────────────────
@@ -393,10 +424,11 @@ function claimFranchise() {
   if (S.totalEarned < obj || S.franchisesOwned >= 99) return;
 
   // Conserver les zones franchise (persistantes)
-  const savedLab    = { ...S.lab,          upgsBought: new Set(S.lab.upgsBought),          moneyAccum:0 };
-  const savedZD     = { ...S.zoneDirector, upgsBought: new Set(S.zoneDirector.upgsBought), active:false, timer:0 };
-  const savedCC     = { ...S.callCenter,   upgsBought: new Set(S.callCenter.upgsBought) };
-  const savedTV     = { ...S.tvAds,        upgsBought: new Set(S.tvAds.upgsBought) };
+  const savedLab = { ...S.lab,          upgsBought: new Set(S.lab.upgsBought),          moneyAccum:0 };
+  const savedZD  = { ...S.zoneDirector, upgsBought: new Set(S.zoneDirector.upgsBought), active:false, timer:0 };
+  const savedCC  = { ...S.callCenter,   upgsBought: new Set(S.callCenter.upgsBought) };
+  const savedTV  = { ...S.tvAds,        upgsBought: new Set(S.tvAds.upgsBought) };
+  // Les ultimes se réinitialisent à chaque franchise (re-achat requis)
 
   const excess   = Math.max(0, S.totalEarned - obj);
   const runBonus = 2 + excess / obj;
@@ -440,11 +472,17 @@ function claimFranchise() {
   S.zoneDirector = savedZD;
   S.callCenter   = savedCC;
   S.tvAds        = savedTV;
+  // Reset ultimes — à racheter chaque run
+  S.ultimes      = { vibromasseur:false, staffBionique:false, dataMining:false, chasseurTetes:false };
+  S.bioniqueRate = 0;
+  S.headhunterTimer = 0;
+  S.vibroAccum   = 0;
 
-  if (typeof _mgrStateKey    !== 'undefined') _mgrStateKey    = null;
-  if (typeof _commStateKey   !== 'undefined') _commStateKey   = null;
-  if (typeof _hireState      !== 'undefined') _hireState      = null;
-  if (typeof _lastClickUpgId !== 'undefined') _lastClickUpgId = null;
+  if (typeof _mgrStateKey      !== 'undefined') _mgrStateKey      = null;
+  if (typeof _commStateKey     !== 'undefined') _commStateKey     = null;
+  if (typeof _hireState        !== 'undefined') _hireState        = null;
+  if (typeof _lastClickUpgId   !== 'undefined') _lastClickUpgId   = null;
+  if (typeof _ultimesStateKey  !== 'undefined') _ultimesStateKey  = null;
 
   recalcEffects();
   buildUpgrades(); buildRoster(); updateHireBtn(); buildManagerSection(); buildCommercialSection();

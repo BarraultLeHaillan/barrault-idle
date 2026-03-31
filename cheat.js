@@ -36,6 +36,7 @@
     { label: '+100 000€',   cat: 'argent', fn: () => { S.money += 100000;      updateUI(); } },
     { label: '+1 000 000€', cat: 'argent', fn: () => { S.money += 1000000;     updateUI(); } },
     { label: '+100 M€',     cat: 'argent', fn: () => { S.money += 100000000;   updateUI(); } },
+    { label: '+1 000 Md€',  cat: 'argent', fn: () => { S.money += 1e15;        updateUI(); } },
 
     // NIVEAU
     { label: 'Niv. 5',  cat: 'niveau', fn: () => { S.xpFromUpgrades = xpForLevel(5);  fullRefresh(); } },

@@ -528,3 +528,25 @@ body.theme-4 .level-bar-fill{background:linear-gradient(90deg,#cc8800,#ffdd44);}
 @keyframes greenPulse{0%,100%{box-shadow:0 0 10px #4dff8855}50%{box-shadow:0 0 22px #4dff8899,0 0 30px 6px #4dff8833}}
 .lb-me.lb-podium{border-color:#4dff8866;}
 .lb-me.lb-rest{border-color:#4dff8844;background:#091a0e;}
+
+/* ── Améliorations Ultimes dans les zones ───────────── */
+/* Bouton disponible (conditions remplies, pas encore acheté) */
+.ultime-zone-avail{display:flex;align-items:center;gap:8px;background:linear-gradient(135deg,#130820,#0d1225);border:2px solid #aa44ff55;border-radius:8px;padding:8px 10px;}
+.ultime-zone-avail-info{flex:1;min-width:0;}
+.ultime-zone-tag{font-family:'Press Start 2P',monospace;font-size:5px;color:#aa44ff;letter-spacing:1px;margin-bottom:2px;}
+.ultime-zone-avail-name{font-family:'Press Start 2P',monospace;font-size:6px;color:#e0d0ff;margin-bottom:2px;}
+.ultime-zone-avail-desc{font-size:8px;color:#7a6a9b;line-height:1.4;}
+.ultime-zone-avail .upg-btn{flex-shrink:0;min-width:70px;font-size:6px;}
+/* État actif (acheté) */
+.ultime-zone-active{background:linear-gradient(135deg,#091a10,#081208);border:2px solid #4dff8866;border-radius:8px;padding:8px 10px;box-shadow:0 0 8px #4dff8820;}
+.ultime-zone-active-header{display:flex;align-items:center;gap:7px;margin-bottom:3px;}
+.ultime-zone-name{font-family:'Press Start 2P',monospace;font-size:6px;color:#4dff88;flex:1;}
+.ultime-zone-check{font-size:14px;color:#4dff88;flex-shrink:0;}
+.ultime-zone-active-desc{font-size:9px;color:#4a9a6b;line-height:1.4;}
+/* B800 IA */
+.bionique-card{display:flex;align-items:center;gap:10px;background:linear-gradient(135deg,#091a10,#061210);border:2px solid #4dff8866;border-radius:8px;padding:10px 12px;box-shadow:0 0 12px #4dff8820;}
+.bionique-icon{font-size:28px;flex-shrink:0;}
+.bionique-info{flex:1;min-width:0;}
+.bionique-name{font-family:'Press Start 2P',monospace;font-size:8px;color:#4dff88;margin-bottom:3px;}
+.bionique-rate{font-size:13px;color:#88ffbb;font-weight:700;margin-bottom:2px;}
+.bionique-desc{font-size:8px;color:#4a9a6b;}

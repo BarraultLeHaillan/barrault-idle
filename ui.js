@@ -60,12 +60,24 @@ function updateUI() {
     commCaRow.style.display=totalCommCa>0?'':'none';
     const commCaEl=document.getElementById('td-comm-ca'); if(commCaEl) commCaEl.textContent=totalCommCa>0?'+'+fmt(Math.round(totalCommCa)):'—';
   }
-  // Revenus manager (monthlyCa)
+  // Revenus manager (monthlyCa) — masqué si Data Mining actif
   const mgrCaRow=document.getElementById('td-mgr-ca-row');
   if (mgrCaRow) {
-    const mgrMonthly=S.manager.hired&&S.manager.monthlyCa>0 ? Math.round(S.manager.monthlyCa*fm()) : 0;
+    const mgrMonthly=S.manager.hired&&S.manager.monthlyCa>0&&!S.ultimes.dataMining ? Math.round(S.manager.monthlyCa*fm()) : 0;
     mgrCaRow.style.display=mgrMonthly>0?'':'none';
     const mgrCaEl=document.getElementById('td-mgr-ca'); if(mgrCaEl) mgrCaEl.textContent=mgrMonthly>0?'+'+fmt(mgrMonthly)+'/mois':'—';
+  }
+  // B800 IA /s
+  const bioRow=document.getElementById('td-bionique-row');
+  if (bioRow) {
+    bioRow.style.display=S.ultimes.staffBionique?'':'none';
+    const bioEl=document.getElementById('td-bionique'); if(bioEl&&S.ultimes.staffBionique) bioEl.textContent='+'+fmt(1e9*fm())+'/s';
+  }
+  // Data Center /s
+  const dcRow=document.getElementById('td-datacenter-row');
+  if (dcRow) {
+    dcRow.style.display=S.ultimes.dataMining?'':'none';
+    const dcEl=document.getElementById('td-datacenter'); if(dcEl&&S.ultimes.dataMining) dcEl.textContent='+'+fmt(1e10*fm())+'/s';
   }
   updateFranchiseWidget();
   const tdDebt=document.getElementById('td-debt-row'); if(tdDebt) tdDebt.style.display='none';
@@ -240,6 +252,25 @@ function buildCommercialSection() {
       </div>`;
     }
   }
+  // Ultime Chasseur de Têtes
+  const uChasseur = ULTIMES_DEF.find(x=>x.id==='chasseurTetes');
+  if (S.ultimes.chasseurTetes) {
+    html+=`<div class="ultime-zone-active" style="margin-top:10px;">
+      <div class="ultime-zone-active-header"><span>🎯</span><span class="ultime-zone-name">CHASSEUR DE TÊTES ACTIF</span><span class="ultime-zone-check">✓</span></div>
+      <div class="ultime-zone-active-desc">Coule un concurrent toutes les 5–30s · +10 Md€</div>
+    </div>`;
+  } else if (uChasseur && uChasseur.unlock(S)) {
+    const canAfford = S.money >= uChasseur.cost;
+    html+=`<div class="ultime-zone-avail" style="margin-top:10px;">
+      <div class="ultime-zone-avail-info">
+        <div class="ultime-zone-tag">COMMERCIAUX ULTIME</div>
+        <div class="ultime-zone-avail-name">🎯 CHASSEUR DE TÊTES</div>
+        <div class="ultime-zone-avail-desc">Concurrent coulé toutes les 5–30s · +10 Md€</div>
+      </div>
+      <button class="upg-btn${canAfford?' ok':''}" id="ultime-comm-buy-btn" ${!canAfford?'disabled':''}>${canAfford?'ACHETER — 100 Md€':'100 Md€'}</button>
+    </div>`;
+  }
+
   el.innerHTML=html;
   // Attacher listeners
   for (const key of ['jerome','pascal']) {
@@ -253,10 +284,12 @@ function buildCommercialSection() {
       if (cvs) { const p2=COMMERCIAL_PROFILES[key]; cvs.getContext('2d').drawImage(makeAvatar(null,32,p2),0,0); }
     }
   }
+  const ultBtn = document.getElementById('ultime-comm-buy-btn');
+  if (ultBtn) ultBtn.addEventListener('click', ()=>buyUltime('chasseurTetes'));
 }
 
 function refreshCommercialSection() {
-  const key=`${S.level>=20}|${S.commercials.jerome.hired}|${S.commercials.pascal.hired}|${S.commercials.jerome.level}|${S.commercials.pascal.level}`;
+  const key=`${S.level>=20}|${S.commercials.jerome.hired}|${S.commercials.pascal.hired}|${S.commercials.jerome.level}|${S.commercials.pascal.level}|${S.ultimes.chasseurTetes}`;
   if (key!==_commStateKey) { _commStateKey=key; buildCommercialSection(); return; }
   if (S.level<20) return;
   for (const k of ['jerome','pascal']) {
@@ -266,6 +299,8 @@ function refreshCommercialSection() {
     const ub=document.getElementById('comm-upg-'+k);
     if (ub) { const nu=COMMERCIAL_UPGRADES.find(u=>u.key===k&&u.level===c.level+1); if(nu){const can=S.money>=nu.cost;ub.disabled=!can;ub.className='upg-btn'+(can?' ok':'');} }
   }
+  const ultBtn=document.getElementById('ultime-comm-buy-btn');
+  if (ultBtn) { const can=S.money>=1e11; ultBtn.disabled=!can; ultBtn.className='upg-btn'+(can?' ok':''); ultBtn.textContent=can?'ACHETER — 100 Md€':'100 Md€'; }
 }
 
 function hireCommercial(key) {
@@ -291,20 +326,54 @@ function upgradeCommercial(key) {
 // ── Roster vendeurs ──────────────────────────────────────
 function buildRoster() {
   const list=document.getElementById('team-roster-list');
-  if (S.team.length===0) { list.innerHTML='<div style="font-size:10px;color:#4a7a9b;text-align:center;padding:0.8rem 0;font-style:italic;">Aucun vendeur</div>'; return; }
-  list.innerHTML='';
-  for (const key of S.team) {
-    const def=SELLERS_DEF[key], card=document.createElement('div');
-    const mal=(S.malusPerSeller[key]||0)>0, bon=(S.bonusPerSeller[key]||0)>0;
-    let cls='seller-card', stCls='ok', stTxt='✓ En poste';
-    if (mal)      { cls='seller-card s-malus';  stCls='malus'; stTxt=`⚡ Malus −50% (${Math.ceil(S.malusPerSeller[key])}s)`; }
-    else if (bon) { cls='seller-card s-bonus';  stCls='bonus'; stTxt=`✨ Bonus +50% (${Math.ceil(S.bonusPerSeller[key])}s)`; }
-    card.className=cls;
-    const av=makeAvatar(key,32); av.className='seller-avatar';
-    const yrs=S.seniority[key]?.years||0;
-    card.innerHTML=`<div class="seller-info"><div class="seller-name">${def.name}</div><div class="seller-spec">${def.spec}</div><div class="seller-status ${stCls}">${stTxt}</div></div><div class="seller-right"><div class="seller-years">${yrs>0?yrs+' an'+(yrs>1?'s':''):''}</div></div>`;
-    card.insertBefore(av,card.firstChild);
-    list.appendChild(card);
+
+  // Staff Bionique actif → B800 IA remplace tous les vendeurs
+  if (S.ultimes.staffBionique) {
+    const perSec = fmt(1e9 * fm());
+    list.innerHTML=`<div class="bionique-card">
+      <div class="bionique-icon">🤖</div>
+      <div class="bionique-info">
+        <div class="bionique-name">B800 IA</div>
+        <div class="bionique-rate">+${perSec}/s</div>
+        <div class="bionique-desc">CA continu — remplace l'équipe</div>
+      </div>
+      <span class="ultime-zone-check">✓</span>
+    </div>`;
+    return;
+  }
+
+  if (S.team.length===0) { list.innerHTML='<div style="font-size:10px;color:#4a7a9b;text-align:center;padding:0.8rem 0;font-style:italic;">Aucun vendeur</div>'; }
+  else {
+    list.innerHTML='';
+    for (const key of S.team) {
+      const def=SELLERS_DEF[key], card=document.createElement('div');
+      const mal=(S.malusPerSeller[key]||0)>0, bon=(S.bonusPerSeller[key]||0)>0;
+      let cls='seller-card', stCls='ok', stTxt='✓ En poste';
+      if (mal)      { cls='seller-card s-malus';  stCls='malus'; stTxt=`⚡ Malus −50% (${Math.ceil(S.malusPerSeller[key])}s)`; }
+      else if (bon) { cls='seller-card s-bonus';  stCls='bonus'; stTxt=`✨ Bonus +50% (${Math.ceil(S.bonusPerSeller[key])}s)`; }
+      card.className=cls;
+      const av=makeAvatar(key,32); av.className='seller-avatar';
+      const yrs=S.seniority[key]?.years||0;
+      card.innerHTML=`<div class="seller-info"><div class="seller-name">${def.name}</div><div class="seller-spec">${def.spec}</div><div class="seller-status ${stCls}">${stTxt}</div></div><div class="seller-right"><div class="seller-years">${yrs>0?yrs+' an'+(yrs>1?'s':''):''}</div></div>`;
+      card.insertBefore(av,card.firstChild);
+      list.appendChild(card);
+    }
+  }
+
+  // Bouton ULTIME si conditions remplies
+  const uStaff = ULTIMES_DEF.find(x=>x.id==='staffBionique');
+  if (uStaff && uStaff.unlock(S)) {
+    const canAfford = S.money >= uStaff.cost;
+    const div = document.createElement('div');
+    div.className = 'ultime-zone-avail'; div.style.marginTop='8px';
+    div.innerHTML = `<div class="ultime-zone-avail-info">
+      <div class="ultime-zone-tag">ÉQUIPE ULTIME</div>
+      <div class="ultime-zone-avail-name">🤖 STAFF BIONIQUE</div>
+      <div class="ultime-zone-avail-desc">B800 IA — CA mensuel en €/s continu</div>
+    </div>
+    <button class="upg-btn${canAfford?' ok':''}" id="ultime-equipe-buy-btn" ${!canAfford?'disabled':''}>${canAfford?'ACHETER — 10 Md€':'10 Md€'}</button>`;
+    div.querySelector('#ultime-equipe-buy-btn')?.addEventListener('click', ()=>buyUltime('staffBionique'));
+    list.appendChild(div);
   }
 }
 
@@ -330,24 +399,53 @@ let _lastClickUpgId = null;
 function refreshClickPanel() {
   const row=document.getElementById('click-upg-row');
   if (!row) return;
-  const next=CLICK_UPGRADES.find(u=>!S.clickUpgsBought.has(u.id));
-  if (!next) {
-    if (row.dataset.state!=='done') { row.innerHTML='<div style="font-size:9px;color:#4dff88;">✓ Toutes les améliorations acquises !</div>'; row.dataset.state='done'; }
+
+  // État : Ultime actif
+  if (S.ultimes.vibromasseur) {
+    if (row.dataset.state !== 'ultime-on') {
+      row.dataset.state = 'ultime-on'; _lastClickUpgId = null;
+      row.innerHTML = `<div class="ultime-zone-active" style="width:100%;">
+        <div class="ultime-zone-active-header"><span>💥</span><span class="ultime-zone-name">VIBROMASSEUR ACTIF</span><span class="ultime-zone-check">✓</span></div>
+        <div class="ultime-zone-active-desc">×10 clics manuels · +10 clics/s auto · +10% chance client</div>
+      </div>`;
+    }
     return;
   }
-  // Reconstruire seulement si l'upgrade a changé
+
+  const next=CLICK_UPGRADES.find(u=>!S.clickUpgsBought.has(u.id));
+
+  // État : Toutes les amélios achetées → bouton ULTIME
+  if (!next) {
+    const canAfford = S.money >= 1e9;
+    if (row.dataset.state !== 'ultime-btn') {
+      row.dataset.state = 'ultime-btn'; _lastClickUpgId = null;
+      row.innerHTML = `<div class="ultime-zone-avail" style="width:100%;">
+        <div class="ultime-zone-avail-info">
+          <div class="ultime-zone-tag">CLIC ULTIME</div>
+          <div class="ultime-zone-avail-name">💥 VIBROMASSEUR</div>
+          <div class="ultime-zone-avail-desc">×10 clics · +10 clics/s · +10% chance client</div>
+        </div>
+        <button class="upg-btn${canAfford?' ok':''}" id="ultime-clic-buy-btn" ${!canAfford?'disabled':''}>${canAfford?'ACHETER — 1 Md€':'1 Md€'}</button>
+      </div>`;
+      document.getElementById('ultime-clic-buy-btn')?.addEventListener('click', ()=>buyUltime('vibromasseur'));
+    } else {
+      const btn=document.getElementById('ultime-clic-buy-btn');
+      if (btn) { btn.disabled=!canAfford; btn.className='upg-btn'+(canAfford?' ok':''); btn.textContent=canAfford?'ACHETER — 1 Md€':'1 Md€'; }
+    }
+    return;
+  }
+
+  // État : upgrade normale
+  if (row.dataset.state==='ultime-btn'||row.dataset.state==='ultime-on') { row.dataset.state=''; _lastClickUpgId=null; }
   if (_lastClickUpgId !== next.id) {
-    _lastClickUpgId = next.id;
-    row.dataset.state='upg';
+    _lastClickUpgId = next.id; row.dataset.state='upg';
     row.innerHTML=`<div class="upg-icon" style="width:28px;height:28px;font-size:14px;flex-shrink:0;">${next.icon}</div><div class="upg-info" style="flex:1;min-width:0;"><div class="upg-name">${next.name}</div><div class="upg-desc">${next.desc}</div></div><button class="upg-btn" id="click-upg-btn" style="flex-shrink:0;min-width:68px;">${fmt(next.cost)}</button>`;
     document.getElementById('click-upg-btn').addEventListener('click', ()=>buyClickUpg(next.id));
   }
-  // Juste mettre à jour le bouton
   const btn=document.getElementById('click-upg-btn');
   if (!btn) return;
   const can=S.money>=next.cost&&S.level>=next.reqLv;
-  btn.disabled=!can;
-  btn.className='upg-btn'+(can?' ok':'');
+  btn.disabled=!can; btn.className='upg-btn'+(can?' ok':'');
   btn.textContent=S.level<next.reqLv?'🔒 Niv.'+next.reqLv:fmt(next.cost);
 }
 
@@ -394,6 +492,15 @@ let _mgrStateKey = null;
 function buildManagerSection() {
   const el = document.getElementById('manager-section-content');
   if (!el) return;
+
+  // Data Mining actif → remplace manager + arbre entier
+  if (S.ultimes.dataMining) {
+    el.innerHTML = `<div class="ultime-zone-active">
+      <div class="ultime-zone-active-header"><span>🖥️</span><span class="ultime-zone-name">DATA CENTER ACTIF</span><span class="ultime-zone-check">✓</span></div>
+      <div class="ultime-zone-active-desc">+10 Md€/s · Clients désactivés</div>
+    </div>`;
+    return;
+  }
 
   if (S.level < 10) {
     el.innerHTML = `<div class="mgr-locked">🔒 Disponible au niveau 10<br><span class="mgr-locked-sub">50 000€ · 1 clic/s automatique inclus</span></div>`;
@@ -455,6 +562,21 @@ function buildManagerSection() {
     html += `</div>`;
   }
   html += `</div>`;
+
+  // Bouton ultime Data Mining (visible quand toutes upgrades achetées)
+  const allMgrBought = S.manager.upgsBought.size >= MANAGER_UPGRADES.length;
+  if (allMgrBought) {
+    const canAfford = S.money >= 1e10;
+    html += `<div class="ultime-zone-avail" style="margin-top:10px;">
+      <div class="ultime-zone-avail-info">
+        <div class="ultime-zone-tag">MANAGER ULTIME</div>
+        <div class="ultime-zone-avail-name">🖥️ DATA MINING</div>
+        <div class="ultime-zone-avail-desc">Data center +10 Md€/s · plus de clients</div>
+      </div>
+      <button class="upg-btn${canAfford?' ok':''}" id="ultime-mgr-buy-btn" ${!canAfford?'disabled':''}>${canAfford?'ACHETER — 10 Md€':'10 Md€'}</button>
+    </div>`;
+  }
+
   el.innerHTML = html;
 
   const avCvs = makeAvatar(null, 40, p);
@@ -465,10 +587,12 @@ function buildManagerSection() {
     const btn = document.getElementById('mgr-btn-'+u.id);
     if (btn && !S.manager.upgsBought.has(u.id)) btn.addEventListener('click', ()=>buyManagerUpg(u.id));
   }
+  const ultBtn = document.getElementById('ultime-mgr-buy-btn');
+  if (ultBtn) ultBtn.addEventListener('click', ()=>buyUltime('dataMining'));
 }
 
 function refreshManagerSection() {
-  const key = `${S.level>=10}|${S.manager.hired}|${S.manager.profile}`;
+  const key = `${S.level>=10}|${S.manager.hired}|${S.manager.profile}|${S.manager.upgsBought.size}|${S.ultimes.dataMining}`;
   if (key !== _mgrStateKey) { _mgrStateKey = key; buildManagerSection(); return; }
   if (S.level < 10) return;
   if (!S.manager.hired) {
@@ -495,6 +619,11 @@ function refreshManagerSection() {
     const vp = S.manager.vipInterval > 0 ? S.manager.vipInterval+'s' : '—';
     const caStr = S.manager.monthlyCa>0 ? '+'+fmt(S.manager.monthlyCa)+'/mois' : '—';
     statsEl.textContent = `🖱️ ${S.manager.autoclickRate}/s · 👥 +${Math.round(S.manager.teamBoost*100)}% · 💰 ${caStr} · 🤝 ${vp}`;
+  }
+  // Rafraîchir le bouton ultime manager si présent (pas si dataMining actif)
+  if (!S.ultimes.dataMining) {
+    const ultBtn = document.getElementById('ultime-mgr-buy-btn');
+    if (ultBtn) { const can=S.money>=1e10; ultBtn.disabled=!can; ultBtn.className='upg-btn'+(can?' ok':''); ultBtn.textContent=can?'ACHETER — 10 Md€':'10 Md€'; }
   }
 }
 
@@ -641,7 +770,9 @@ function setVolume(v) { if (_audio) _audio.volume=v/100; }
 // ── Clicker — popup gain corrigé ────────────────────────
 document.getElementById('clicker').addEventListener('click', function(e) {
   S.clicks++; S.clicksThisMonth++; S.clickBoost=8;
-  const clicks=S.clickDouble?(S.clickQuad?4:2):1;
+  const vibroMult = S.ultimes.vibromasseur ? 10 : 1;
+  const baseClicks = S.clickDouble?(S.clickQuad?4:2):1;
+  const clicks = baseClicks * vibroMult;
   let totalVal=0;
   for (let i=0; i<clicks; i++) { const val=clickValue(); S.money+=val; S.totalEarned+=val; totalVal+=val; }
   if (totalVal > 0) playSound('coin');
@@ -655,8 +786,83 @@ document.getElementById('clicker').addEventListener('click', function(e) {
   pop.textContent='+'+fmt(totalVal);
   document.getElementById('cust-area').appendChild(pop);
   setTimeout(()=>{ if(pop.parentNode) pop.parentNode.removeChild(pop); },950);
-  if (Math.random()<Math.min(0.90,S.clickChance)) spawnCustomer();
+  const extraChance = S.ultimes.vibromasseur ? 0.10 : 0;
+  if (Math.random()<Math.min(0.90, S.clickChance+extraChance)) spawnCustomer();
 });
+
+// ════════════════════════════════════════════════════════
+// AMÉLIORATIONS ULTIMES
+// ════════════════════════════════════════════════════════
+
+let _ultimesStateKey = null;
+
+function buildUltimesSection() {
+  const el = document.getElementById('ultimes-content');
+  if (!el) return;
+  let html = '';
+  for (const u of ULTIMES_DEF) {
+    const bought   = S.ultimes[u.id];
+    const unlocked = u.unlock(S);
+    const canAfford = S.money >= u.cost;
+    const cls = bought ? 'ultime-card bought' : unlocked ? 'ultime-card unlocked' : 'ultime-card locked';
+    const btnTxt = !unlocked ? '🔒 CONDITIONS' : !canAfford ? fmt(u.cost) : 'ACHETER — ' + fmt(u.cost);
+    const btnCls = 'upg-btn' + (unlocked && canAfford && !bought ? ' ok' : '');
+    html += `<div class="${cls}">
+      <div class="ultime-header">
+        <span class="ultime-icon">${u.icon}</span>
+        <div class="ultime-info">
+          <div class="ultime-tag">${u.category}</div>
+          <div class="ultime-name">${u.name}</div>
+        </div>
+        ${bought ? '<span class="ultime-check">✓</span>' : ''}
+      </div>
+      <div class="ultime-desc">${u.desc}</div>
+      ${!unlocked ? `<div class="ultime-req">🔒 ${u.unlockDesc}</div>` : ''}
+      ${!bought ? `<button class="${btnCls}" id="ultime-btn-${u.id}" ${!unlocked || !canAfford ? 'disabled' : ''}>${btnTxt}</button>` : ''}
+    </div>`;
+  }
+  el.innerHTML = html;
+  for (const u of ULTIMES_DEF) {
+    const btn = document.getElementById('ultime-btn-' + u.id);
+    if (btn && !S.ultimes[u.id]) btn.addEventListener('click', () => buyUltime(u.id));
+  }
+}
+
+function refreshUltimesSection() {
+  const key = ULTIMES_DEF.map(u => `${u.unlock(S)}|${S.ultimes[u.id]}`).join('_');
+  if (key !== _ultimesStateKey) { _ultimesStateKey = key; buildUltimesSection(); return; }
+  for (const u of ULTIMES_DEF) {
+    const btn = document.getElementById('ultime-btn-' + u.id);
+    if (!btn) continue;
+    if (S.ultimes[u.id]) continue;
+    const unlocked = u.unlock(S);
+    const canAfford = S.money >= u.cost;
+    btn.disabled = !unlocked || !canAfford;
+    btn.className = 'upg-btn' + (unlocked && canAfford ? ' ok' : '');
+    btn.textContent = !unlocked ? '🔒 CONDITIONS' : !canAfford ? fmt(u.cost) : 'ACHETER — ' + fmt(u.cost);
+  }
+}
+
+function buyUltime(id) {
+  const u = ULTIMES_DEF.find(x => x.id === id);
+  if (!u || !u.unlock(S) || S.money < u.cost || S.ultimes[id]) return;
+  S.money -= u.cost;
+  S.ultimes[id] = true;
+  if (id === 'staffBionique') {
+    S.bioniqueRate = S.team.reduce((sum, k) => sum + (S.sellerCosts[k] || 10000) * 2, 0);
+    const perSec = S.bioniqueRate * fm() / S.monthDuration;
+    addLog(`<span class="ly">🤖 STAFF BIONIQUE activé ! B800 IA génère +${fmt(perSec)}/s</span>`);
+  } else if (id === 'dataMining') {
+    addLog(`<span class="ly">🖥️ DATA MINING activé ! Data center +1 Md€/s · Clients désactivés</span>`);
+  } else if (id === 'chasseurTetes') {
+    S.headhunterTimer = 5 + Math.random() * 25;
+    addLog(`<span class="ly">🎯 CHASSEUR DE TÊTES activé ! Concurrents dans le viseur.</span>`);
+  } else if (id === 'vibromasseur') {
+    addLog(`<span class="ly">💥 VIBROMASSEUR activé ! Chaque clic = 10 clics !</span>`);
+  }
+  _ultimesStateKey = null;
+  buildUltimesSection();
+}
 
 // ════════════════════════════════════════════════════════
 // ZONES FRANCHISE

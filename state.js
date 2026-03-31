@@ -171,6 +171,56 @@ const FRANCHISE_TREE = [
   { id:'ft2', threshold:2,  icon:'🏆', name:'BARRAULT A DU TALENT', unlock:'zoneDirector', desc:'Débloque les Directeurs de Zone' },
   { id:'ft3', threshold:5,  icon:'📞', name:'CALL CENTER',           unlock:'callCenter',   desc:'Débloque la Centrale d\'Appel' },
   { id:'ft4', threshold:10, icon:'📺', name:'SPOT TÉLÉ',            unlock:'tvAds',        desc:'Débloque la Pub TV' },
+  { id:'ft5', threshold:15, icon:'🌐', name:'RÉSEAU NATIONAL',      desc:'15 franchises — Barrault couvre la France' },
+  { id:'ft6', threshold:20, icon:'🏙️', name:'EMPIRE RÉGIONAL',      desc:'20 franchises — Un empire prend forme' },
+  { id:'ft7', threshold:25, icon:'💡', name:'INNOVATION TOTALE',    desc:'25 franchises — La R&D au maximum' },
+  { id:'ft8', threshold:30, icon:'🚀', name:'EXPANSION MAXIMALE',   desc:'30 franchises — France entière couverte' },
+  { id:'ft9', threshold:40, icon:'⭐', name:'LÉGENDE DU MARCHÉ',    desc:'40 franchises — Référence nationale' },
+  { id:'ft10',threshold:50, icon:'👑', name:'MONOPOLE BARRAULT',    desc:'50 franchises — Le sommet absolu' },
+];
+
+// ── Améliorations Ultimes ────────────────────────────────
+const ULTIMES_DEF = [
+  {
+    id: 'vibromasseur',
+    icon: '💥',
+    name: 'VIBROMASSEUR',
+    category: 'CLIC ULTIME',
+    desc: '+10% chance client · chaque clic = 10 clics',
+    cost: 1e9,
+    unlockDesc: 'Acheter les 10 améliorations clic',
+    unlock: S => S.clickUpgsBought.size >= CLICK_UPGRADES.length,
+  },
+  {
+    id: 'staffBionique',
+    icon: '🤖',
+    name: 'STAFF BIONIQUE',
+    category: 'ÉQUIPE ULTIME',
+    desc: 'B800 IA — CA équipe généré en continu par seconde',
+    cost: 1e10,
+    unlockDesc: 'Équipe complète 7/7',
+    unlock: S => S.team.length >= 7,
+  },
+  {
+    id: 'dataMining',
+    icon: '🖥️',
+    name: 'DATA MINING',
+    category: 'MANAGER ULTIME',
+    desc: 'Data center — 1 Md€/s · plus de clients',
+    cost: 1e10,
+    unlockDesc: 'Toutes les améliorations manager achetées (12)',
+    unlock: S => S.manager.hired && S.manager.upgsBought.size >= MANAGER_UPGRADES.length,
+  },
+  {
+    id: 'chasseurTetes',
+    icon: '🎯',
+    name: 'CHASSEUR DE TÊTES',
+    category: 'COMMERCIAUX ULTIME',
+    desc: 'Coule un concurrent toutes les 5–30s · +10 Md€',
+    cost: 1e11,
+    unlockDesc: 'Jérôme niv.5 + Pascal niv.5',
+    unlock: S => S.commercials.jerome.hired && S.commercials.jerome.level >= 5 && S.commercials.pascal.hired && S.commercials.pascal.level >= 5,
+  },
 ];
 
 // ── Upgrades zones franchise ─────────────────────────────
@@ -232,4 +282,9 @@ const S = {
   zoneDirector: { boostPct:0.50,   active:false, timer:0, cooldown:300, upgsBought:new Set() },
   callCenter:   { incomeRate:500,   xpRate:5,     upgsBought:new Set() },
   tvAds:        { monthlyCa:5000000, upgsBought:new Set() },
+  // Améliorations Ultimes (persistantes à travers les prestiges)
+  ultimes: { vibromasseur:false, staffBionique:false, dataMining:false, chasseurTetes:false },
+  bioniqueRate: 0,
+  headhunterTimer: 0,
+  vibroAccum: 0,
 };

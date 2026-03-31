@@ -80,6 +80,10 @@ function saveGame() {
         monthlyCa:  S.tvAds.monthlyCa,
         upgsBought: [...S.tvAds.upgsBought],
       },
+      ultimes:         { ...S.ultimes },
+      bioniqueRate:    S.bioniqueRate,
+      headhunterTimer: S.headhunterTimer,
+      vibroAccum:      S.vibroAccum,
     };
     localStorage.setItem(SAVE_KEY, JSON.stringify(data));
   } catch(e) {
@@ -172,6 +176,10 @@ function loadGame() {
       S.tvAds.monthlyCa  = g(d.tvAds.monthlyCa, 5000000);
       S.tvAds.upgsBought = new Set(d.tvAds.upgsBought ?? []);
     }
+    if (d.ultimes) Object.assign(S.ultimes, d.ultimes);
+    S.bioniqueRate    = g(d.bioniqueRate, 0);
+    S.headhunterTimer = g(d.headhunterTimer, 0);
+    S.vibroAccum      = g(d.vibroAccum, 0);
 
     recalcEffects();
     return true;
@@ -239,7 +247,9 @@ function tick() {
   const rate = ips();
   if (rate > 0) { const gain=rate*dt*0.25; S.money+=gain; S.totalEarned+=gain; }
 
-  if (S.team.length>0) {
+  // ── Clients (désactivés si Data Mining actif)
+  const noClients = S.ultimes.dataMining;
+  if (S.team.length>0 && !noClients) {
     clientT+=dt;
     const freqBoost=1+S.effects.partFreq+S.effects.proFreq+S.toolEffects.clientFreq;
     const interval=Math.max(1.5, 10/(1+S.team.length*0.35)/freqBoost)*(S.clickBoost>0?0.4:1);
@@ -252,19 +262,20 @@ function tick() {
     S.autoclickAccum += S.manager.autoclickRate*dt;
     while (S.autoclickAccum >= 1) {
       S.autoclickAccum -= 1;
-      const val = clickValue(); S.money+=val; S.totalEarned+=val;
+      const vibroMult = S.ultimes.vibromasseur ? 10 : 1;
+      const val = clickValue() * vibroMult; S.money+=val; S.totalEarned+=val;
       showManagerAutoClick(val);
     }
   }
 
-  // ── Manager : prospection VIP
-  if (S.manager.hired && S.manager.vipInterval>0) {
+  // ── Manager : prospection VIP (désactivée si Data Mining)
+  if (S.manager.hired && S.manager.vipInterval>0 && !noClients) {
     S.manager.vipTimer -= dt;
     if (S.manager.vipTimer <= 0) { S.manager.vipTimer=S.manager.vipInterval; spawnVIPClient(); }
   }
 
-  // ── Outil : centrale d'appel (t5)
-  tickToolClient(dt);
+  // ── Outil : centrale d'appel (désactivée si Data Mining)
+  if (!noClients) tickToolClient(dt);
 
   // ── Commerciaux : XP/s
   for (const key of ['jerome','pascal']) {
@@ -275,6 +286,21 @@ function tick() {
   tickLab(dt);
   tickZoneDirector(dt);
   tickCallCenter(dt);
+
+  // ── Améliorations Ultimes
+  tickStaffBionique(dt);
+  tickDataMining(dt);
+  tickHeadhunter(dt);
+
+  // ── Vibromasseur : 10 clics/s auto (comptabilisés dans le score)
+  if (S.ultimes.vibromasseur) {
+    S.vibroAccum += 10 * dt;
+    while (S.vibroAccum >= 1) {
+      S.vibroAccum -= 1;
+      S.clicks++; S.clicksThisMonth++;
+      const val = clickValue(); S.money += val; S.totalEarned += val;
+    }
+  }
 
   tickEventTimer(dt);
   advanceTime(dt);
