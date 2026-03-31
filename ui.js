@@ -163,7 +163,7 @@ function updateFranchiseWidget() {
   if (canClaim) {
     const excess    = S.totalEarned - obj;
     const runBonus  = 2 + excess / obj;
-    const nextMult  = (fm() * runBonus).toFixed(2);
+    const nextMult  = (S.franchiseMultiplier + runBonus).toFixed(2);
     bonusPrev.textContent = '×'+runBonus.toFixed(2)+' → total ×'+nextMult;
   }
 
