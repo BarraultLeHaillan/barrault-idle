@@ -450,4 +450,5 @@ function claimFranchise() {
   addLog(`<span class="ly">🏪 FRANCHISÉ #${newOwned} — Multiplicateur ×${newMult.toFixed(2)} actif !</span>`);
   addLog('<span class="lp">▶ Barrault Le Haillan — Janvier 2026 !</span>');
   addLog(`<span class="lb">💡 Tous vos revenus sont ×${newMult.toFixed(2)} !</span>`);
+  if (typeof saveGame === 'function') saveGame();
 }
