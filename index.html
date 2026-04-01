@@ -10,6 +10,13 @@
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
 </head>
 <body>
+
+<!-- ══ ÉCRAN D'ACCUEIL ══ -->
+<div id="cover-screen">
+  <img src="png/cover.png" id="cover-img" alt="Barrault Idle">
+  <button id="cover-play-btn" onclick="document.getElementById('cover-screen').style.display='none'">▶ JOUER</button>
+</div>
+
 <div id="app">
 
   <!-- éléments cachés conservés pour compatibilité JS -->
@@ -323,6 +330,28 @@
     <input id="pseudo-input" class="pseudo-input" type="text" maxlength="20" placeholder="Votre pseudo (20 car. max)" autocomplete="off" spellcheck="false">
     <button class="pseudo-play-btn" onclick="confirmPseudo()">▶ JOUER</button>
     <div class="pseudo-hint">Visible de tous les joueurs dans le classement</div>
+  </div>
+</div>
+
+<!-- POPUP ATTAQUE REÇUE -->
+<div id="attack-received-popup" class="modal-overlay" style="display:none;">
+  <div class="modal-box attack-recv-box">
+    <div class="modal-title" style="color:#CC1020;">🚨 VOUS ÊTES ATTAQUÉ !</div>
+    <div id="attack-received-body"></div>
+    <div class="modal-actions">
+      <button class="modal-btn confirm" onclick="document.getElementById('attack-received-popup').style.display='none'">OK</button>
+    </div>
+  </div>
+</div>
+
+<!-- POPUP RÉSULTAT ATTAQUE -->
+<div id="attack-result-popup" class="modal-overlay" style="display:none;">
+  <div class="modal-box" id="attack-result-box" style="max-width:400px;text-align:center;">
+    <div class="modal-title" id="attack-result-title">⚔ RÉSULTAT</div>
+    <div id="attack-result-body"></div>
+    <div class="modal-actions">
+      <button class="modal-btn confirm" onclick="document.getElementById('attack-result-popup').style.display='none'">OK</button>
+    </div>
   </div>
 </div>
 

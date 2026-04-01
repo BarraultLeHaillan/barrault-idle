@@ -4,7 +4,7 @@
 
 // Objectif franchise croissant (courbe exp, x1.7 par palier)
 function franchiseObjective(n) {
-  return Math.floor(150000000 * Math.pow(1.7, n));
+  return Math.floor(50000000 * Math.pow(2.5, n));
 }
 
 const DAY_NAMES  = ['Lun','Mar','Mer','Jeu','Ven'];
@@ -207,7 +207,7 @@ const ULTIMES_DEF = [
     name: 'DATA MINING',
     category: 'MANAGER ULTIME',
     desc: 'Data center — 1 Md€/s · plus de clients',
-    cost: 1e10,
+    cost: 1e11,
     unlockDesc: 'Toutes les améliorations manager achetées (12)',
     unlock: S => S.manager.hired && S.manager.upgsBought.size >= MANAGER_UPGRADES.length,
   },
@@ -216,10 +216,20 @@ const ULTIMES_DEF = [
     icon: '🎯',
     name: 'CHASSEUR DE TÊTES',
     category: 'COMMERCIAUX ULTIME',
-    desc: 'Coule un concurrent toutes les 5–30s · +10 Md€',
-    cost: 1e11,
+    desc: 'Coule un concurrent toutes les 5–30s · +1 Bn€',
+    cost: 1e14,
     unlockDesc: 'Jérôme niv.5 + Pascal niv.5',
     unlock: S => S.commercials.jerome.hired && S.commercials.jerome.level >= 5 && S.commercials.pascal.hired && S.commercials.pascal.level >= 5,
+  },
+  {
+    id: 'ultimeZoneDir',
+    icon: '🏆',
+    name: 'RÉSEAU BARRAULT',
+    category: 'ZONE DIRECTOR ULTIME',
+    desc: 'Boost permanent · boostPct × nombre de franchises achetées',
+    cost: 1e17,
+    unlockDesc: 'Toutes les améliorations Directeur de Zone (3) + 2 franchises',
+    unlock: S => S.franchisesOwned >= 2 && S.zoneDirector.upgsBought.size >= ZONE_DIRECTOR_UPGRADES.length,
   },
 ];
 
@@ -283,7 +293,7 @@ const S = {
   callCenter:   { incomeRate:500,   xpRate:5,     upgsBought:new Set() },
   tvAds:        { monthlyCa:5000000, upgsBought:new Set() },
   // Améliorations Ultimes (persistantes à travers les prestiges)
-  ultimes: { vibromasseur:false, staffBionique:false, dataMining:false, chasseurTetes:false },
+  ultimes: { vibromasseur:false, staffBionique:false, dataMining:false, chasseurTetes:false, ultimeZoneDir:false },
   bioniqueRate: 0,
   headhunterTimer: 0,
   vibroAccum: 0,

@@ -4,6 +4,13 @@
 body{background:#0a0a0f;color:#fff;font-family:'Exo 2',sans-serif;min-height:100vh;-webkit-tap-highlight-color:transparent;}
 #app{max-width:1080px;margin:0 auto;padding:1rem;}
 
+/* ── ÉCRAN D'ACCUEIL ── */
+#cover-screen{position:fixed;inset:0;z-index:9999;display:flex;align-items:center;justify-content:center;background:#000;}
+#cover-img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:center;}
+#cover-play-btn{position:relative;z-index:1;font-family:'Press Start 2P',monospace;font-size:14px;color:#fff;background:#CC1020;border:3px solid #fff;border-radius:8px;padding:16px 48px;cursor:pointer;letter-spacing:2px;text-shadow:1px 1px #000;box-shadow:0 0 30px #CC102088,0 4px 0 #880010;transition:transform .1s,box-shadow .1s;}
+#cover-play-btn:hover{transform:translateY(-2px);box-shadow:0 0 40px #CC1020bb,0 6px 0 #880010;}
+#cover-play-btn:active{transform:translateY(2px);box-shadow:0 0 20px #CC102066,0 2px 0 #880010;}
+
 /* ── HEADER ── */
 .header{background:linear-gradient(135deg,#1B5EAB 60%,#0d3d73);border:2px solid #1B5EAB;border-radius:10px;padding:0.7rem 1.1rem;margin-bottom:0.8rem;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;position:relative;overflow:hidden;}
 .header::after{content:'';position:absolute;bottom:0;left:0;right:0;height:4px;background:#CC1020;}
@@ -550,3 +557,34 @@ body.theme-4 .level-bar-fill{background:linear-gradient(90deg,#cc8800,#ffdd44);}
 .bionique-name{font-family:'Press Start 2P',monospace;font-size:8px;color:#4dff88;margin-bottom:3px;}
 .bionique-rate{font-size:13px;color:#88ffbb;font-weight:700;margin-bottom:2px;}
 .bionique-desc{font-size:8px;color:#4a9a6b;}
+
+/* ══ SYSTÈME D'ATTAQUE PvP ══ */
+
+/* Barre cooldown en haut du classement */
+.lb-attack-header{text-align:center;margin-bottom:0.7rem;}
+.lb-cd-badge{display:inline-block;padding:5px 14px;border-radius:20px;font-family:'Press Start 2P',monospace;font-size:7px;background:#1a1a2a;border:1px solid #4a6a8a;color:#6b8eb5;letter-spacing:1px;}
+.lb-cd-badge.ready{border-color:#CC1020aa;color:#ff6655;background:linear-gradient(135deg,#1a0505,#2a0808);box-shadow:0 0 10px #CC102033;animation:atkPulse 2s ease-in-out infinite;}
+@keyframes atkPulse{0%,100%{box-shadow:0 0 8px #CC102033}50%{box-shadow:0 0 18px #CC102077}}
+
+/* Ligne attaque dans chaque carte joueur */
+.lb-attack-row{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-top:8px;padding-top:7px;border-top:1px solid #ffffff11;}
+.lb-treso{font-size:9px;color:#ffaa44;font-style:italic;}
+
+/* Boutons attaque */
+.lb-attack-btn{font-family:'Press Start 2P',monospace;font-size:7px;padding:6px 14px;border-radius:6px;border:2px solid;cursor:pointer;letter-spacing:1px;transition:transform .1s;}
+.lb-attack-ok{background:linear-gradient(135deg,#3a0808,#660a0a);border-color:#CC1020;color:#ff8888;}
+.lb-attack-ok:hover{background:linear-gradient(135deg,#550a0a,#880c0c);transform:translateY(-1px);box-shadow:0 0 12px #CC102066;}
+.lb-attack-ok:active{transform:translateY(1px);}
+.lb-attack-cd{background:#111;border-color:#333;color:#555;cursor:not-allowed;}
+.lb-attack-offline{background:#0a0a12;border-color:#2a2a40;color:#3a3a5a;cursor:not-allowed;}
+
+/* Popup attaque reçue */
+.attack-recv-box{border-color:#CC1020;max-width:380px;text-align:center;animation:shakeBox 0.4s ease-out;}
+@keyframes shakeBox{0%{transform:translateX(-8px)}20%{transform:translateX(8px)}40%{transform:translateX(-5px)}60%{transform:translateX(5px)}80%{transform:translateX(-2px)}100%{transform:translateX(0)}}
+.atk-recv-attacker{font-size:11px;color:#ff8888;margin:0.5rem 0;}
+.atk-recv-attacker strong{color:#fff;}
+.atk-recv-amount{font-family:'Press Start 2P',monospace;font-size:22px;color:#CC1020;text-shadow:0 0 20px #CC1020aa;margin:0.6rem 0;}
+.atk-recv-sub{font-size:9px;color:#6b5050;font-style:italic;}
+
+/* Popup résultat attaque */
+.attack-feedback-msg{font-size:11px;color:#ccc;line-height:1.8;padding:0.5rem 0;}

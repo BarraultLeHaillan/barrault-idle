@@ -7,7 +7,9 @@
 function fm() { return Math.max(1, S.franchiseMultiplier); }
 
 function fmt(v) {
-  if (v >= 1e9)  return v.toExponential(2).replace('e+','e')+'€';
+  if (v >= 1e15) return (v/1e15).toFixed(2)+' Tn€';
+  if (v >= 1e12) return (v/1e12).toFixed(2)+' Bn€';
+  if (v >= 1e9)  return (v/1e9).toFixed(2)+' Md€';
   if (v >= 1e6)  return (v/1e6).toFixed(2)+' M€';
   if (v >= 1000) return Math.round(v/100)/10+' k€';
   return Math.round(v)+' €';
@@ -60,7 +62,9 @@ function ips() {
   const tool    = 1 + S.toolEffects.teamBoost;
   const global  = 1 + S.effects.globalMult + S.toolEffects.globalBoost;
   const mgrTeam = 1 + S.manager.teamBoost;
-  const zdBoost = (S.franchisesOwned >= 2 && S.zoneDirector.active) ? (1 + S.zoneDirector.boostPct) : 1;
+  const zdBoost = S.ultimes.ultimeZoneDir
+    ? (1 + S.zoneDirector.boostPct * Math.max(1, S.franchisesOwned))
+    : (S.franchisesOwned >= 2 && S.zoneDirector.active) ? (1 + S.zoneDirector.boostPct) : 1;
   const clickB  = S.clickBoost > 0 ? 2.5 : 1;
   return (base * tool * global * mgrTeam * zdBoost * clickB) * fm();
 }
@@ -232,18 +236,18 @@ function tickCallCenter(dt) {
 
 // ── Améliorations Ultimes ─────────────────────────────────
 
-// Staff Bionique : B800 IA — 1 Md€/s fixe
+// Staff Bionique : B800 IA — 1 Md€/10s (100M€/s)
 function tickStaffBionique(dt) {
   if (!S.ultimes.staffBionique) return;
-  const gain = 1e9 * fm() * dt;
+  const gain = 1e8 * fm() * dt;
   S.money += gain;
   S.totalEarned += gain;
 }
 
-// Data Mining : data center 10 Md€/s
+// Data Mining : data center 10 Md€/10s (1 Md€/s)
 function tickDataMining(dt) {
   if (!S.ultimes.dataMining) return;
-  const gain = 1e10 * fm() * dt;
+  const gain = 1e9 * fm() * dt;
   S.money += gain;
   S.totalEarned += gain;
 }
@@ -254,7 +258,7 @@ function tickHeadhunter(dt) {
   S.headhunterTimer -= dt;
   if (S.headhunterTimer <= 0) {
     S.headhunterTimer = 5 + Math.random() * 25;
-    const gain = 1e10 * fm();
+    const gain = 1e12 * fm();
     S.money += gain;
     S.totalEarned += gain;
     addLog(`<span class="ly">🎯 Chasseur de Têtes — concurrent coulé ! +${fmt(gain)}</span>`);
@@ -473,7 +477,7 @@ function claimFranchise() {
   S.callCenter   = savedCC;
   S.tvAds        = savedTV;
   // Reset ultimes — à racheter chaque run
-  S.ultimes      = { vibromasseur:false, staffBionique:false, dataMining:false, chasseurTetes:false };
+  S.ultimes      = { vibromasseur:false, staffBionique:false, dataMining:false, chasseurTetes:false, ultimeZoneDir:false };
   S.bioniqueRate = 0;
   S.headhunterTimer = 0;
   S.vibroAccum   = 0;

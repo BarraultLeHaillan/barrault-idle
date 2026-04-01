@@ -292,13 +292,14 @@ function tick() {
   tickDataMining(dt);
   tickHeadhunter(dt);
 
-  // ── Vibromasseur : 10 clics/s auto (comptabilisés dans le score)
+  // ── Vibromasseur : 10 clics/s auto (comptabilisés + affichage visuel)
   if (S.ultimes.vibromasseur) {
     S.vibroAccum += 10 * dt;
     while (S.vibroAccum >= 1) {
       S.vibroAccum -= 1;
       S.clicks++; S.clicksThisMonth++;
       const val = clickValue(); S.money += val; S.totalEarned += val;
+      showManagerAutoClick(val);
     }
   }
 
