@@ -486,6 +486,8 @@ async function checkGlobalReset() {
     const lastReset  = parseInt(localStorage.getItem('barrault_lastReset') || '0');
     if (resetId > lastReset) {
       localStorage.setItem('barrault_lastReset', resetId.toString());
+      // Bloquer saveGame() sur beforeunload (sinon il réécrit la save avant le reload)
+      if (typeof _restarting !== 'undefined') _restarting = true;
       // Wipe complet
       localStorage.removeItem('barrault_save_v2');
       localStorage.removeItem('barrault_pseudo');
