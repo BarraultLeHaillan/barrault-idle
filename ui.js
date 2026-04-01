@@ -267,7 +267,7 @@ function buildCommercialSection() {
         <div class="ultime-zone-avail-name">🎯 CHASSEUR DE TÊTES</div>
         <div class="ultime-zone-avail-desc">Concurrent coulé toutes les 5–30s · +1 Bn€</div>
       </div>
-      <button class="upg-btn${canAfford?' ok':''}" id="ultime-comm-buy-btn" ${!canAfford?'disabled':''}>${canAfford?'ACHETER — '+fmt(1e14):fmt(1e14)}</button>
+      <button class="upg-btn${canAfford?' ok':''}" id="ultime-comm-buy-btn" ${!canAfford?'disabled':''}>${canAfford?'ACHETER — '+fmt(1e18):fmt(1e18)}</button>
     </div>`;
   }
 
@@ -300,7 +300,7 @@ function refreshCommercialSection() {
     if (ub) { const nu=COMMERCIAL_UPGRADES.find(u=>u.key===k&&u.level===c.level+1); if(nu){const can=S.money>=nu.cost;ub.disabled=!can;ub.className='upg-btn'+(can?' ok':'');} }
   }
   const ultBtn=document.getElementById('ultime-comm-buy-btn');
-  if (ultBtn) { const can=S.money>=1e14; ultBtn.disabled=!can; ultBtn.className='upg-btn'+(can?' ok':''); ultBtn.textContent=can?'ACHETER — '+fmt(1e14):fmt(1e14); }
+  if (ultBtn) { const can=S.money>=1e18; ultBtn.disabled=!can; ultBtn.className='upg-btn'+(can?' ok':''); ultBtn.textContent=can?'ACHETER — '+fmt(1e18):fmt(1e18); }
 }
 
 function hireCommercial(key) {
@@ -371,7 +371,7 @@ function buildRoster() {
       <div class="ultime-zone-avail-name">🤖 STAFF BIONIQUE</div>
       <div class="ultime-zone-avail-desc">B800 IA — CA mensuel en €/s continu</div>
     </div>
-    <button class="upg-btn${canAfford?' ok':''}" id="ultime-equipe-buy-btn" ${!canAfford?'disabled':''}>${canAfford?'ACHETER — 10 Md€':'10 Md€'}</button>`;
+    <button class="upg-btn${canAfford?' ok':''}" id="ultime-equipe-buy-btn" ${!canAfford?'disabled':''}>${canAfford?'ACHETER — '+fmt(uStaff.cost):fmt(uStaff.cost)}</button>`;
     div.querySelector('#ultime-equipe-buy-btn')?.addEventListener('click', ()=>buyUltime('staffBionique'));
     list.appendChild(div);
   }
@@ -566,14 +566,14 @@ function buildManagerSection() {
   // Bouton ultime Data Mining (visible quand toutes upgrades achetées)
   const allMgrBought = S.manager.upgsBought.size >= MANAGER_UPGRADES.length;
   if (allMgrBought) {
-    const canAfford = S.money >= 1e11;
+    const canAfford = S.money >= 1e15;
     html += `<div class="ultime-zone-avail" style="margin-top:10px;">
       <div class="ultime-zone-avail-info">
         <div class="ultime-zone-tag">MANAGER ULTIME</div>
         <div class="ultime-zone-avail-name">🖥️ DATA MINING</div>
         <div class="ultime-zone-avail-desc">Data center +1 Md€/s · plus de clients</div>
       </div>
-      <button class="upg-btn${canAfford?' ok':''}" id="ultime-mgr-buy-btn" ${!canAfford?'disabled':''}>${canAfford?'ACHETER — '+fmt(1e11):fmt(1e11)}</button>
+      <button class="upg-btn${canAfford?' ok':''}" id="ultime-mgr-buy-btn" ${!canAfford?'disabled':''}>${canAfford?'ACHETER — '+fmt(1e15):fmt(1e15)}</button>
     </div>`;
   }
 
@@ -623,7 +623,7 @@ function refreshManagerSection() {
   // Rafraîchir le bouton ultime manager si présent (pas si dataMining actif)
   if (!S.ultimes.dataMining) {
     const ultBtn = document.getElementById('ultime-mgr-buy-btn');
-    if (ultBtn) { const can=S.money>=1e11; ultBtn.disabled=!can; ultBtn.className='upg-btn'+(can?' ok':''); ultBtn.textContent=can?'ACHETER — '+fmt(1e11):fmt(1e11); }
+    if (ultBtn) { const can=S.money>=1e15; ultBtn.disabled=!can; ultBtn.className='upg-btn'+(can?' ok':''); ultBtn.textContent=can?'ACHETER — '+fmt(1e15):fmt(1e15); }
   }
 }
 
@@ -929,10 +929,10 @@ function refreshZoneUpgButtons() {
   // Bouton ultime ZD
   const ultZDBtn = document.getElementById('ultime-zd-buy-btn');
   if (ultZDBtn) {
-    const can = S.money >= 1e17;
+    const can = S.money >= 1e21;
     ultZDBtn.disabled = !can;
     ultZDBtn.className = 'upg-btn' + (can ? ' ok' : '');
-    ultZDBtn.textContent = can ? 'ACHETER — '+fmt(1e17) : fmt(1e17);
+    ultZDBtn.textContent = can ? 'ACHETER — '+fmt(1e21) : fmt(1e21);
   }
 }
 
@@ -1020,14 +1020,14 @@ function buildZoneDirectorSection() {
 
   // Bouton ultime ZD si conditions remplies et non acheté
   if (!S.ultimes.ultimeZoneDir && S.franchisesOwned >= 2 && S.zoneDirector.upgsBought.size >= ZONE_DIRECTOR_UPGRADES.length) {
-    const canAfford = S.money >= 1e17;
+    const canAfford = S.money >= 1e21;
     html += `<div class="ultime-zone-avail" style="margin-top:10px;">
       <div class="ultime-zone-avail-info">
         <div class="ultime-zone-tag">ZONE DIRECTOR ULTIME</div>
         <div class="ultime-zone-avail-name">🏆 RÉSEAU BARRAULT</div>
         <div class="ultime-zone-avail-desc">Boost permanent · +${pct}% × franchises achetées</div>
       </div>
-      <button class="upg-btn${canAfford?' ok':''}" id="ultime-zd-buy-btn" ${!canAfford?'disabled':''}>${canAfford?'ACHETER — '+fmt(1e17):fmt(1e17)}</button>
+      <button class="upg-btn${canAfford?' ok':''}" id="ultime-zd-buy-btn" ${!canAfford?'disabled':''}>${canAfford?'ACHETER — '+fmt(1e21):fmt(1e21)}</button>
     </div>`;
   }
 
