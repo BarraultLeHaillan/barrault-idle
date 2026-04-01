@@ -37,11 +37,11 @@ function updateUI() {
   // Plus d'alertes de charges
 
   document.getElementById('boost-ind').style.display=S.clickBoost>0?'block':'none';
-  const r=Math.round(ips()); document.getElementById('rate-disp').textContent=(r>0?'+':'')+fmt(r)+'/s';
+  const r=Math.round(_cachedIps); document.getElementById('rate-disp').textContent=(r>0?'+':'')+fmt(r)+'/s';
   updateHireBtn(); updateClock(); refreshUpgrades(); refreshClickPanel(); updateLevelUI(); refreshManagerSection(); refreshCommercialSection();
   // Hub trésorerie
   const hub=document.getElementById('treasury-amt'); if(hub) hub.textContent=fmt(S.money);
-  const hub2=document.getElementById('treasury-rate'); if(hub2) { const r=Math.round(ips()); hub2.textContent=(r>0?'+':'')+fmt(r)+'/s'; }
+  const hub2=document.getElementById('treasury-rate'); if(hub2) hub2.textContent=(r>0?'+':'')+fmt(r)+'/s';
   const tdCharges=document.getElementById('td-charges'); if(tdCharges) tdCharges.textContent='—';
   if(document.getElementById('td-team-ca')) {
     const zdMult = (S.franchisesOwned>=2 && S.zoneDirector.active) ? (1+S.zoneDirector.boostPct) : 1;
@@ -873,7 +873,10 @@ function buyUltime(id) {
 // ════════════════════════════════════════════════════════
 
 // ── Arbre franchise (nœuds de progression) ───────────────
+let _fTreeOwned = -1;
 function updateFranchiseTree() {
+  if (S.franchisesOwned === _fTreeOwned) return;
+  _fTreeOwned = S.franchisesOwned;
   const tree = document.getElementById('franchise-tree-nodes');
   if (!tree) return;
   tree.innerHTML = '';
@@ -890,7 +893,10 @@ function updateFranchiseTree() {
 }
 
 // ── Visibilité des zones selon palier ────────────────────
+let _fzOwned = -1;
 function updateFranchiseZoneVisibility() {
+  if (S.franchisesOwned === _fzOwned) return;
+  _fzOwned = S.franchisesOwned;
   const zones = [
     { id:'zone-lab',           threshold:1 },
     { id:'zone-director',      threshold:2 },

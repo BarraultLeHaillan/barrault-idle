@@ -31,13 +31,18 @@ function availableSellers() { return Object.keys(SELLERS_DEF).filter(k=>!S.team.
 function calcXP() {
   return S.xpFromUpgrades + S.xpFromClients;
 }
-function xpToLevel(xp) {
+// Table XP calculée une seule fois (pas à chaque frame)
+const _XP_TABLE = (() => {
   const t = [0];
   for (let i=1; i<=60; i++) t.push(t[i-1]+Math.floor(100*Math.pow(1.20,i-1)));
+  return t;
+})();
+
+function xpToLevel(xp) {
   let lv=1;
-  for (let i=1; i<=60; i++) { if (xp>=t[i]) lv=i+1; else break; }
+  for (let i=1; i<=60; i++) { if (xp>=_XP_TABLE[i]) lv=i+1; else break; }
   lv = Math.min(lv,60);
-  return { level:lv, curr:xp-t[lv-1], next:t[lv]-t[lv-1] };
+  return { level:lv, curr:xp-_XP_TABLE[lv-1], next:_XP_TABLE[lv]-_XP_TABLE[lv-1] };
 }
 
 // ── Effets vendeurs & manager ────────────────────────────
@@ -329,9 +334,12 @@ function playSound(type) {
 }
 
 // ── Thème de fond selon palier franchise ─────────────────
+let _bgTheme = null;
 function updateBgTheme() {
   const n = S.franchisesOwned;
   const theme = n >= 10 ? 'theme-4' : n >= 5 ? 'theme-3' : n >= 2 ? 'theme-2' : n >= 1 ? 'theme-1' : 'theme-0';
+  if (theme === _bgTheme) return;
+  _bgTheme = theme;
   document.body.className = theme;
 }
 

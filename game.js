@@ -232,6 +232,10 @@ function confirmRestart() {
 
 // ── BOUCLE PRINCIPALE ─────────────────────────────────────
 let last=Date.now(), clientT=0;
+let _uiAccum=0, _vibroVisualAccum=0, _vibroValAccum=0;
+let _cachedIps=0; // ips() calculé une fois par frame, réutilisé dans updateUI
+let _achAccum=0;  // throttle checkAchievements() à 1/s
+let _mgrAutoVisualAccum=0, _mgrAutoValAccum=0; // batching popups manager
 
 function tick() {
   const now=Date.now(), dt=Math.min((now-last)/1000, 0.1);
@@ -243,9 +247,9 @@ function tick() {
   tickMalusBonus(dt);
   S.xpFromClients += dt;
 
-  // ── Revenus passifs équipe + manager incomeBoost
-  const rate = ips();
-  if (rate > 0) { const gain=rate*dt*0.25; S.money+=gain; S.totalEarned+=gain; }
+  // ── Revenus passifs — ips() calculé une seule fois ce frame
+  _cachedIps = ips();
+  if (_cachedIps > 0) { const gain=_cachedIps*dt*0.25; S.money+=gain; S.totalEarned+=gain; }
 
   // ── Clients (désactivés si Data Mining actif)
   const noClients = S.ultimes.dataMining;
@@ -257,14 +261,21 @@ function tick() {
     tickBonusTimers(dt);
   }
 
-  // ── Manager : auto-clic
+  // ── Manager : auto-clic — visuel batché toutes les 200ms (même logique que vibromasseur)
   if (S.manager.hired && S.manager.autoclickRate>0) {
     S.autoclickAccum += S.manager.autoclickRate*dt;
     while (S.autoclickAccum >= 1) {
       S.autoclickAccum -= 1;
       const vibroMult = S.ultimes.vibromasseur ? 10 : 1;
       const val = clickValue() * vibroMult; S.money+=val; S.totalEarned+=val;
-      showManagerAutoClick(val);
+      if (!S.ultimes.vibromasseur) _mgrAutoValAccum += val;
+    }
+    if (!S.ultimes.vibromasseur) {
+      _mgrAutoVisualAccum += dt;
+      if (_mgrAutoVisualAccum >= 0.2 && _mgrAutoValAccum > 0) {
+        showManagerAutoClick(_mgrAutoValAccum);
+        _mgrAutoValAccum = 0; _mgrAutoVisualAccum = 0;
+      }
     }
   }
 
@@ -292,21 +303,32 @@ function tick() {
   tickDataMining(dt);
   tickHeadhunter(dt);
 
-  // ── Vibromasseur : 10 clics/s auto (comptabilisés + affichage visuel)
+  // ── Vibromasseur : 10 clics/s — calcul chaque frame, visuel batché toutes les 200ms
   if (S.ultimes.vibromasseur) {
     S.vibroAccum += 10 * dt;
     while (S.vibroAccum >= 1) {
       S.vibroAccum -= 1;
       S.clicks++; S.clicksThisMonth++;
       const val = clickValue(); S.money += val; S.totalEarned += val;
-      showManagerAutoClick(val);
+      _vibroValAccum += val;
+    }
+    _vibroVisualAccum += dt;
+    if (_vibroVisualAccum >= 0.2 && _vibroValAccum > 0) {
+      showManagerAutoClick(_vibroValAccum);
+      _vibroValAccum = 0; _vibroVisualAccum = 0;
     }
   }
 
   tickEventTimer(dt);
   advanceTime(dt);
-  checkAchievements();
-  updateUI();
+
+  // ── Achievements throttlés à 1/s (pas besoin de vérifier à 60fps)
+  _achAccum += dt;
+  if (_achAccum >= 1) { _achAccum = 0; checkAchievements(); }
+
+  // ── UI throttlée à 10fps (toutes les 100ms) — logique reste à 60fps
+  _uiAccum += dt;
+  if (_uiAccum >= 0.1) { _uiAccum=0; updateUI(); }
 
   requestAnimationFrame(tick);
 }
