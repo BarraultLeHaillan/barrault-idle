@@ -560,6 +560,9 @@ body.theme-4 .level-bar-fill{background:linear-gradient(90deg,#cc8800,#ffdd44);}
 
 /* ══ SYSTÈME D'ATTAQUE PvP ══ */
 
+/* Date du classement */
+.lb-date-badge{text-align:center;font-family:'Press Start 2P',monospace;font-size:7px;color:#ffdd44;letter-spacing:1px;margin-bottom:0.6rem;padding:6px;background:#1a1500;border:1px solid #ffdd4433;border-radius:6px;}
+
 /* Barre cooldown en haut du classement */
 .lb-attack-header{text-align:center;margin-bottom:0.7rem;}
 .lb-cd-badge{display:inline-block;padding:5px 14px;border-radius:20px;font-family:'Press Start 2P',monospace;font-size:7px;background:#1a1a2a;border:1px solid #4a6a8a;color:#6b8eb5;letter-spacing:1px;}

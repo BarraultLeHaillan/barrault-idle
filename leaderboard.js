@@ -23,6 +23,13 @@ function initFirebase() {
   }
 }
 
+// ── Collection du jour (reset automatique à minuit) ────
+function getTodayKey() {
+  const d = new Date();
+  return `scores_${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+}
+function getDailyCollection() { return _db.collection(getTodayKey()); }
+
 // ── Identifiant joueur ──────────────────────────────────
 function getPlayerId() {
   let id = localStorage.getItem('barrault_uid');
@@ -80,10 +87,16 @@ function escHtml(s) {
 // ════════════════════════════════════════════════════════
 
 let _lastSavedScore = -1;
+let _lastSaveDate   = '';
 
 async function saveScore() {
   if (!_db) return;
   const name = getPlayerName(); if (!name) return;
+
+  // Reset au changement de jour (minuit)
+  const today = getTodayKey();
+  if (today !== _lastSaveDate) { _lastSaveDate = today; _lastSavedScore = -1; }
+
   const score        = getGameScore();
   const maxLevel     = (typeof S !== 'undefined') ? (S.level || 1) : 1;
   const totalClicks  = (typeof S !== 'undefined') ? ((S.lifetimeClicks||0)+(S.clicks||0)) : 0;
@@ -93,14 +106,14 @@ async function saveScore() {
 
   if (score <= _lastSavedScore) return;
   const playerId = getPlayerId();
-  const docRef   = _db.collection('scores').doc(playerId);
+  const docRef   = getDailyCollection().doc(playerId);
   try {
     const existing  = await docRef.get();
     const prevScore = existing.exists ? (existing.data().score || 0) : 0;
     const prevLevel = existing.exists ? (existing.data().maxLevel || 1) : 1;
     if (prevScore >= score && prevLevel >= maxLevel) return;
 
-    const topSnap   = await _db.collection('scores').orderBy('score','desc').limit(1).get();
+    const topSnap    = await getDailyCollection().orderBy('score','desc').limit(1).get();
     const currentTop = topSnap.empty ? null : topSnap.docs[0];
     const alreadyFirst = currentTop && currentTop.id === playerId;
     const becomesFirst = !currentTop || alreadyFirst || score > currentTop.data().score;
@@ -115,11 +128,11 @@ async function saveScore() {
   } catch(e) { console.warn('[LB] Save error:', e.message); }
 }
 
-// Présence (money + lastActive) toutes les 30 s
+// Présence (money + lastActive) toutes les 30 s — dans la collection du jour
 async function savePresence() {
   if (!_db || !getPlayerName()) return;
   try {
-    await _db.collection('scores').doc(getPlayerId()).set({
+    await getDailyCollection().doc(getPlayerId()).set({
       money:      typeof S !== 'undefined' ? Math.floor(S.money || 0) : 0,
       lastActive: firebase.firestore.FieldValue.serverTimestamp(),
     }, { merge:true });
@@ -284,7 +297,7 @@ async function openLeaderboard() {
     return;
   }
   try {
-    const snap   = await _db.collection('scores').orderBy('score','desc').limit(5).get();
+    const snap   = await getDailyCollection().orderBy('score','desc').limit(5).get();
     const scores = snap.docs.map(d => ({ id:d.id, ...d.data() }));
     renderLeaderboard(scores, content);
   } catch(e) {
@@ -301,9 +314,14 @@ function renderLeaderboard(scores, container) {
     return;
   }
 
+  // Date du classement
+  const d = new Date();
+  const dateLabel = d.toLocaleDateString('fr-FR', { weekday:'long', day:'numeric', month:'long' });
+
   // Barre cooldown attaque
   const cdRem = cooldownRemaining();
-  let html = `<div class="lb-attack-header">`;
+  let html = `<div class="lb-date-badge">📅 Classement du ${dateLabel}</div>`;
+  html += `<div class="lb-attack-header">`;
   if (cdRem) {
     html += `<span class="lb-cd-badge">⏳ Prochain raid dans ${cdRem}</span>`;
   } else {
