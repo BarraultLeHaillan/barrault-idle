@@ -157,9 +157,15 @@
       }
     },
     {
-      label: '🔴 RESET COMPLET', cat: 'misc', fn: () => {
+      label: '🔴 RESET COMPLET (local)', cat: 'misc', fn: () => {
         if (!confirm('[ADMIN] Réinitialiser la partie ? (irréversible)')) return;
         location.reload();
+      }
+    },
+    {
+      label: '🌐 RESET GLOBAL TOUS LES JOUEURS', cat: 'misc', fn: () => {
+        if (typeof adminGlobalReset === 'function') adminGlobalReset();
+        else alert('Firebase non chargé.');
       }
     },
   ];
