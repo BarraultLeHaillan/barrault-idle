@@ -456,15 +456,59 @@ function confirmPseudo() {
   savePresence();
 }
 
+// ════════════════════════════════════════════════════════
+// RESET GLOBAL (admin)
+// ════════════════════════════════════════════════════════
+
+const ADMIN_PASSWORD = 'barrault2026';
+
+async function adminGlobalReset() {
+  const pwd = prompt('Mot de passe admin :');
+  if (pwd !== ADMIN_PASSWORD) { alert('Mauvais mot de passe.'); return; }
+  if (!confirm('Réinitialiser la progression de TOUS les joueurs ?\nIls devront tout recommencer et re-saisir leur pseudo.')) return;
+  if (!_db) { alert('Firebase non connecté.'); return; }
+  try {
+    await _db.collection('config').doc('globalReset').set({
+      resetId:   Date.now(),
+      resetAt:   firebase.firestore.FieldValue.serverTimestamp(),
+      resetBy:   getPlayerName() || 'admin',
+    });
+    alert('Reset global envoyé ! Tous les joueurs seront réinitialisés.');
+  } catch(e) { alert('Erreur : ' + e.message); }
+}
+
+async function checkGlobalReset() {
+  if (!_db) return;
+  try {
+    const doc = await _db.collection('config').doc('globalReset').get();
+    if (!doc.exists) return;
+    const resetId    = doc.data().resetId || 0;
+    const lastReset  = parseInt(localStorage.getItem('barrault_lastReset') || '0');
+    if (resetId > lastReset) {
+      localStorage.setItem('barrault_lastReset', resetId.toString());
+      // Wipe complet
+      localStorage.removeItem('barrault_save_v2');
+      localStorage.removeItem('barrault_pseudo');
+      localStorage.removeItem('barrault_uid');
+      localStorage.removeItem('barrault_lastAttack');
+      location.reload();
+    }
+  } catch(e) {}
+}
+
 // ── Init au chargement ────────────────────────────────
 window.addEventListener('load', () => {
   initFirebase();
-  showPseudoModal();
-  const inp = document.getElementById('pseudo-input');
-  if (inp) inp.addEventListener('keydown', e => { if (e.key==='Enter') confirmPseudo(); });
-  // Démarrer les listeners multijoueur après un court délai (Firebase init)
-  setTimeout(() => {
+  // Vérif reset global avant tout
+  setTimeout(async () => {
+    await checkGlobalReset();
+    showPseudoModal();
     savePresence();
     listenForAttacks();
+    // Vérif reset toutes les 60s (pour les joueurs déjà connectés)
+    setInterval(checkGlobalReset, 60000);
   }, 1500);
+
+  const inp = document.getElementById('pseudo-input');
+  if (inp) inp.addEventListener('keydown', e => { if (e.key==='Enter') confirmPseudo(); });
 });
