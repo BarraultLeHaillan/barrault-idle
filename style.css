@@ -481,16 +481,20 @@ body.theme-4 .level-bar-fill{background:linear-gradient(90deg,#cc8800,#ffdd44);}
 /* ══════════════════════════════════════════════
    MODAL CLASSEMENT
    ══════════════════════════════════════════════ */
-.lb-box{background:#07101e;border:2px solid #ff6600;border-radius:16px;padding:1.4rem 1.6rem;max-width:520px;width:95%;animation:slideUp 0.25s ease;position:relative;overflow:hidden;}
-.lb-box::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse at 50% 0%,#ff660011 0%,transparent 60%);pointer-events:none;}
-.lb-box-title{font-family:'Press Start 2P',monospace;font-size:8px;color:#ff8833;text-align:center;letter-spacing:1px;line-height:1.8;margin-bottom:1.2rem;text-shadow:0 0 12px #ff660066;}
+/* ── Fullscreen leaderboard ── */
+.lb-fullscreen{position:fixed;inset:0;background:#07101e;z-index:1000;overflow-y:auto;overflow-x:hidden;animation:fadeIn 0.2s ease;}
+.lb-fullscreen::before{content:'';position:fixed;inset:0;background:radial-gradient(ellipse at 50% 0%,#ff660018 0%,transparent 55%);pointer-events:none;z-index:0;}
+.lb-fs-inner{position:relative;z-index:1;max-width:680px;margin:0 auto;padding:1.4rem 1.2rem 2rem;}
+.lb-close-btn{position:fixed;top:14px;right:18px;z-index:10;background:none;border:2px solid #ff660055;border-radius:8px;color:#ff8833;font-size:18px;line-height:1;padding:4px 10px;cursor:pointer;transition:border-color .15s,color .15s;}
+.lb-close-btn:hover{border-color:#ff6600;color:#ffaa55;}
+.lb-box-title{font-family:'Press Start 2P',monospace;font-size:9px;color:#ff8833;text-align:center;letter-spacing:1px;line-height:1.8;margin-bottom:1.2rem;text-shadow:0 0 12px #ff660066;}
 .lb-loading,.lb-error,.lb-empty{text-align:center;padding:1.5rem 0;font-size:11px;color:#6b8eb5;font-style:italic;}
 .lb-error{color:#CC1020;}
 .lb-you{font-size:7px;color:#4dff88;font-family:'Press Start 2P',monospace;margin-left:4px;}
 .lb-lvl{font-family:'Press Start 2P',monospace;font-size:6px;color:#4dc8ff;background:#0a1e3a;border:1px solid #1B5EAB44;border-radius:4px;padding:2px 5px;white-space:nowrap;flex-shrink:0;}
 
 /* 1ère place */
-.lb-first{position:relative;background:linear-gradient(135deg,#1a1000,#2a1800);border:2px solid #ffd700;border-radius:12px;padding:1rem 1.2rem;margin-bottom:0.7rem;text-align:center;overflow:hidden;animation:goldPulse 2.5s ease-in-out infinite;}
+.lb-first{position:relative;background:linear-gradient(135deg,#1a1000,#2a1800);border:2px solid #ffd700;border-radius:12px;padding:1rem 1.2rem;margin-bottom:0.8rem;text-align:center;overflow:hidden;width:100%;box-sizing:border-box;animation:goldPulse 2.5s ease-in-out infinite;}
 @keyframes goldPulse{0%,100%{box-shadow:0 0 10px #ffd70055,0 0 0 0 #ffd70022}50%{box-shadow:0 0 22px #ffd70099,0 0 30px 6px #ffd70033}}
 .lb-first-glow{position:absolute;top:-30px;left:50%;transform:translateX(-50%);width:200px;height:80px;background:radial-gradient(ellipse,#ffd70033 0%,transparent 70%);pointer-events:none;}
 .lb-first-top{display:flex;align-items:center;justify-content:center;gap:10px;margin-bottom:6px;}
@@ -502,41 +506,34 @@ body.theme-4 .level-bar-fill{background:linear-gradient(90deg,#cc8800,#ffdd44);}
 .lb-first-duration strong{color:#ffd700;}
 
 /* 2e et 3e place */
-
 .lb-silver{background:#141414;border:1px solid #c0c0c0;box-shadow:0 0 6px #c0c0c022;}
 .lb-bronze{background:#120e08;border:1px solid #cd7f32;box-shadow:0 0 6px #cd7f3222;}
-.lb-pod-medal{font-size:18px;flex-shrink:0;}
+.lb-pod-medal{font-size:20px;flex-shrink:0;}
 .lb-pod-rank{font-family:'Press Start 2P',monospace;font-size:8px;color:#a0a0a0;flex-shrink:0;min-width:26px;}
 .lb-silver .lb-pod-rank{color:#c0c0c0;}
 .lb-bronze .lb-pod-rank{color:#cd7f32;}
 .lb-pod-name{font-family:'Press Start 2P',monospace;font-size:8px;color:#ddd;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.lb-pod-score{font-family:'Press Start 2P',monospace;font-size:8px;color:#a0a0a0;flex-shrink:0;}
+.lb-silver .lb-pod-score{color:#c0c0c0;}
+.lb-bronze .lb-pod-score{color:#cd7f32;}
 
-
-/* 4e et 5e place */
-.lb-rest{padding:6px 10px;border-radius:7px;margin-bottom:4px;background:#0d1520;border:1px solid #1B5EAB22;}
+/* 4e–10e place */
+.lb-rest{padding:7px 12px;border-radius:7px;margin-bottom:5px;background:#0d1520;border:1px solid #1B5EAB22;width:100%;box-sizing:border-box;}
 .lb-rest-main{display:flex;align-items:center;gap:10px;}
 .lb-rest-rank{font-family:'Press Start 2P',monospace;font-size:7px;color:#3a5a7b;flex-shrink:0;min-width:26px;}
 .lb-rest-name{font-size:11px;color:#6b8eb5;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
 .lb-rest-score{font-size:10px;color:#4a6a8b;flex-shrink:0;}
 
-/* Ligne stats secondaires (commun à tous les rangs) */
-.lb-stats-row{display:flex;flex-wrap:wrap;gap:8px;margin-top:5px;padding-top:5px;border-top:1px solid #ffffff0d;font-size:9px;color:#4a6a8b;}
+/* Ligne stats secondaires */
+.lb-stats-row{display:flex;flex-wrap:wrap;gap:8px;margin-top:6px;padding-top:6px;border-top:1px solid #ffffff0d;font-size:9px;color:#4a6a8b;}
 .lb-stats-row span{white-space:nowrap;}
 .lb-first .lb-stats-row{justify-content:center;color:#8a7040;}
 
-/* Grille côte à côte pour #2 et #3 */
-.lb-podium-grid{display:flex;gap:8px;margin-bottom:0.7rem;}
-.lb-podium-grid .lb-podium{flex:1;min-width:0;margin-bottom:0;}
-
-/* Ajustement podium pour wrapper main */
-.lb-podium{display:flex;flex-direction:column;padding:7px 10px;border-radius:9px;margin-bottom:6px;}
-.lb-pod-main{display:flex;align-items:center;gap:7px;flex-wrap:wrap;}
-.lb-pod-score{font-family:'Press Start 2P',monospace;font-size:9px;color:#a0a0a0;margin:4px 0 2px;text-align:center;}
-.lb-silver .lb-pod-score{color:#c0c0c0;}
-.lb-bronze .lb-pod-score{color:#cd7f32;}
-.lb-podium .lb-stats-row{font-size:8px;gap:5px;}
-.lb-podium .lb-attack-row{margin-top:5px;padding-top:5px;}
-.lb-podium .lb-attack-btn{font-size:6px;padding:4px 8px;}
+/* Podium #2 et #3 pleine largeur */
+.lb-podium{display:flex;flex-direction:column;padding:10px 14px;border-radius:9px;margin-bottom:7px;width:100%;box-sizing:border-box;}
+.lb-pod-main{display:flex;align-items:center;gap:10px;}
+.lb-podium .lb-stats-row{font-size:9px;}
+.lb-podium .lb-attack-row{margin-top:7px;padding-top:6px;}
 
 /* Mise en évidence du joueur courant */
 .lb-me.lb-first{border-color:#4dff88;animation:greenPulse 2.5s ease-in-out infinite;}

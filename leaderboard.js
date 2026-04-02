@@ -359,8 +359,6 @@ function renderLeaderboard(scores, container) {
   }
   html += `</div>`;
 
-  let podiumGridHtml = '';
-
   scores.forEach((s, i) => {
     _lbPlayers[s.id] = s;
     const rank   = i + 1;
@@ -409,14 +407,14 @@ function renderLeaderboard(scores, container) {
     } else if (rank === 2 || rank === 3) {
       const medals = { 2:'🥈', 3:'🥉' };
       const cls    = rank === 2 ? 'lb-silver' : 'lb-bronze';
-      podiumGridHtml += `<div class="lb-podium ${cls}${meCls}">
+      html += `<div class="lb-podium ${cls}${meCls}">
         <div class="lb-pod-main">
           <span class="lb-pod-medal">${medals[rank]}</span>
           <span class="lb-pod-rank">#${rank}</span>
           <span class="lb-pod-name">${escHtml(s.playerName)}${isMe?' <span class="lb-you">(toi)</span>':''}</span>
           ${lvlBadge}
+          <span class="lb-pod-score">${fmtScore(s.score)}</span>
         </div>
-        <div class="lb-pod-score">${fmtScore(s.score)}</div>
         ${statsLine}
         ${tresoBadge ? `<div class="lb-attack-row">${tresoBadge}${attackBtn}</div>` : (attackBtn ? `<div class="lb-attack-row">${attackBtn}</div>` : '')}
       </div>`;
@@ -431,8 +429,6 @@ function renderLeaderboard(scores, container) {
       </div>`;
     }
   });
-
-  if (podiumGridHtml) html += `<div class="lb-podium-grid">${podiumGridHtml}</div>`;
 
   container.innerHTML = html;
 

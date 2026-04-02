@@ -308,7 +308,7 @@
   <div class="season-box">
     <div class="season-title">🏁 NOUVELLE SAISON !</div>
     <div class="season-msg">Le classement vient de se réinitialiser.<br>Restart ta partie pour repartir de zéro<br>et viser la <span>1ère place</span> !</div>
-    <button class="season-restart-btn" onclick="confirmSeasonRestart()">↺ NOUVELLE PARTIE</button>
+    <button class="season-restart-btn" onclick="confirmRestart()">↺ NOUVELLE PARTIE</button>
   </div>
 </div>
 
@@ -365,13 +365,11 @@
 </div>
 
 <!-- MODAL CLASSEMENT -->
-<div id="lb-modal" class="modal-overlay" style="display:none;">
-  <div class="lb-box">
+<div id="lb-modal" class="lb-fullscreen" style="display:none;">
+  <button class="lb-close-btn" onclick="document.getElementById('lb-modal').style.display='none'">✕</button>
+  <div class="lb-fs-inner">
     <div class="lb-box-title">⚔ Classement des Grands Maîtres<br>de Barrault Idle</div>
     <div id="lb-content"></div>
-    <div class="modal-actions" style="margin-top:1rem;">
-      <button class="modal-btn cancel" onclick="document.getElementById('lb-modal').style.display='none'">Fermer</button>
-    </div>
   </div>
 </div>
 
