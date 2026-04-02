@@ -502,7 +502,7 @@ body.theme-4 .level-bar-fill{background:linear-gradient(90deg,#cc8800,#ffdd44);}
 .lb-first-duration strong{color:#ffd700;}
 
 /* 2e et 3e place */
-.lb-podium{display:flex;align-items:center;gap:10px;padding:9px 12px;border-radius:9px;margin-bottom:6px;}
+
 .lb-silver{background:#141414;border:1px solid #c0c0c0;box-shadow:0 0 6px #c0c0c022;}
 .lb-bronze{background:#120e08;border:1px solid #cd7f32;box-shadow:0 0 6px #cd7f3222;}
 .lb-pod-medal{font-size:18px;flex-shrink:0;}
@@ -510,9 +510,7 @@ body.theme-4 .level-bar-fill{background:linear-gradient(90deg,#cc8800,#ffdd44);}
 .lb-silver .lb-pod-rank{color:#c0c0c0;}
 .lb-bronze .lb-pod-rank{color:#cd7f32;}
 .lb-pod-name{font-family:'Press Start 2P',monospace;font-size:8px;color:#ddd;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
-.lb-pod-score{font-family:'Press Start 2P',monospace;font-size:8px;color:#a0a0a0;flex-shrink:0;}
-.lb-silver .lb-pod-score{color:#c0c0c0;}
-.lb-bronze .lb-pod-score{color:#cd7f32;}
+
 
 /* 4e et 5e place */
 .lb-rest{padding:6px 10px;border-radius:7px;margin-bottom:4px;background:#0d1520;border:1px solid #1B5EAB22;}
@@ -526,15 +524,34 @@ body.theme-4 .level-bar-fill{background:linear-gradient(90deg,#cc8800,#ffdd44);}
 .lb-stats-row span{white-space:nowrap;}
 .lb-first .lb-stats-row{justify-content:center;color:#8a7040;}
 
+/* Grille côte à côte pour #2 et #3 */
+.lb-podium-grid{display:flex;gap:8px;margin-bottom:0.7rem;}
+.lb-podium-grid .lb-podium{flex:1;min-width:0;margin-bottom:0;}
+
 /* Ajustement podium pour wrapper main */
-.lb-podium{display:flex;flex-direction:column;padding:9px 12px;border-radius:9px;margin-bottom:6px;}
-.lb-pod-main{display:flex;align-items:center;gap:10px;}
+.lb-podium{display:flex;flex-direction:column;padding:7px 10px;border-radius:9px;margin-bottom:6px;}
+.lb-pod-main{display:flex;align-items:center;gap:7px;flex-wrap:wrap;}
+.lb-pod-score{font-family:'Press Start 2P',monospace;font-size:9px;color:#a0a0a0;margin:4px 0 2px;text-align:center;}
+.lb-silver .lb-pod-score{color:#c0c0c0;}
+.lb-bronze .lb-pod-score{color:#cd7f32;}
+.lb-podium .lb-stats-row{font-size:8px;gap:5px;}
+.lb-podium .lb-attack-row{margin-top:5px;padding-top:5px;}
+.lb-podium .lb-attack-btn{font-size:6px;padding:4px 8px;}
 
 /* Mise en évidence du joueur courant */
 .lb-me.lb-first{border-color:#4dff88;animation:greenPulse 2.5s ease-in-out infinite;}
 @keyframes greenPulse{0%,100%{box-shadow:0 0 10px #4dff8855}50%{box-shadow:0 0 22px #4dff8899,0 0 30px 6px #4dff8833}}
 .lb-me.lb-podium{border-color:#4dff8866;}
 .lb-me.lb-rest{border-color:#4dff8844;background:#091a0e;}
+
+/* ── OVERLAY NOUVELLE SAISON ───────────────────────── */
+#season-overlay{position:fixed;inset:0;z-index:8000;background:rgba(0,0,0,0.90);backdrop-filter:blur(8px);display:none;align-items:center;justify-content:center;}
+.season-box{text-align:center;max-width:440px;width:90%;padding:2rem 1.5rem;animation:slideUp 0.35s ease;}
+.season-title{font-family:'Press Start 2P',monospace;font-size:15px;color:#ffdd44;text-shadow:0 0 20px #ffdd44bb;margin-bottom:1.4rem;line-height:1.6;}
+.season-msg{font-family:'Press Start 2P',monospace;font-size:8px;color:#aac8e8;line-height:2.2;margin-bottom:2.2rem;}
+.season-msg span{color:#ffdd44;}
+.season-restart-btn{font-family:'Press Start 2P',monospace;font-size:11px;padding:18px 0;background:#4dff88;color:#000;border:3px solid #4dff88;border-radius:10px;cursor:pointer;box-shadow:0 0 28px #4dff8899,0 0 8px #4dff8844 inset;letter-spacing:1px;width:100%;transition:all 0.15s;display:block;}
+.season-restart-btn:hover{background:#fff;border-color:#fff;box-shadow:0 0 36px #fffa,0 0 10px #fff6 inset;}
 
 /* ── Améliorations Ultimes dans les zones ───────────── */
 /* Bouton disponible (conditions remplies, pas encore acheté) */

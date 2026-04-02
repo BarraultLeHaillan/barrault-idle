@@ -110,15 +110,6 @@ function showSeasonOverlay() {
   if (el) el.style.display = 'flex';
 }
 
-function confirmSeasonRestart() {
-  // Si c'est un reset global admin, on propage l'ID de reset
-  const gid = localStorage.getItem('barrault_pendingGlobalReset');
-  if (gid) {
-    localStorage.setItem('barrault_pendingReset', gid);
-    localStorage.removeItem('barrault_pendingGlobalReset');
-  }
-  if (typeof confirmRestart === 'function') confirmRestart();
-}
 
 async function saveScore() {
   checkSeasonChange();
@@ -368,6 +359,8 @@ function renderLeaderboard(scores, container) {
   }
   html += `</div>`;
 
+  let podiumGridHtml = '';
+
   scores.forEach((s, i) => {
     _lbPlayers[s.id] = s;
     const rank   = i + 1;
@@ -416,14 +409,14 @@ function renderLeaderboard(scores, container) {
     } else if (rank === 2 || rank === 3) {
       const medals = { 2:'🥈', 3:'🥉' };
       const cls    = rank === 2 ? 'lb-silver' : 'lb-bronze';
-      html += `<div class="lb-podium ${cls}${meCls}">
+      podiumGridHtml += `<div class="lb-podium ${cls}${meCls}">
         <div class="lb-pod-main">
           <span class="lb-pod-medal">${medals[rank]}</span>
           <span class="lb-pod-rank">#${rank}</span>
           <span class="lb-pod-name">${escHtml(s.playerName)}${isMe?' <span class="lb-you">(toi)</span>':''}</span>
           ${lvlBadge}
-          <span class="lb-pod-score">${fmtScore(s.score)}</span>
         </div>
+        <div class="lb-pod-score">${fmtScore(s.score)}</div>
         ${statsLine}
         ${tresoBadge ? `<div class="lb-attack-row">${tresoBadge}${attackBtn}</div>` : (attackBtn ? `<div class="lb-attack-row">${attackBtn}</div>` : '')}
       </div>`;
@@ -438,6 +431,8 @@ function renderLeaderboard(scores, container) {
       </div>`;
     }
   });
+
+  if (podiumGridHtml) html += `<div class="lb-podium-grid">${podiumGridHtml}</div>`;
 
   container.innerHTML = html;
 
@@ -516,10 +511,8 @@ async function checkGlobalReset() {
     const resetId    = doc.data().resetId || 0;
     const lastReset  = parseInt(localStorage.getItem('barrault_lastReset') || '0');
     if (resetId > lastReset) {
-      // Stocker l'ID pour confirmation par le joueur (via overlay saison)
-      localStorage.setItem('barrault_pendingGlobalReset', resetId.toString());
-      _seasonBlocked = true;
-      showSeasonOverlay();
+      localStorage.setItem('barrault_pendingReset', resetId.toString());
+      location.reload();
     }
   } catch(e) {}
 }
