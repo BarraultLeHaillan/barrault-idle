@@ -86,10 +86,43 @@ function escHtml(s) {
 // SCORE & PRÉSENCE
 // ════════════════════════════════════════════════════════
 
-let _lastSavedScore = -1;
-let _lastSaveDate   = '';
+let _lastSavedScore  = -1;
+let _lastSaveDate    = '';
+let _seasonBlocked   = false;
+
+// ── Détection nouvelle saison (changement de jour) ────
+function checkSeasonChange() {
+  if (_seasonBlocked) return;
+  const todayKey = getTodayKey();
+  const lastKey  = localStorage.getItem('barrault_lastSeasonKey') || '';
+  if (!lastKey) {
+    localStorage.setItem('barrault_lastSeasonKey', todayKey);
+    return;
+  }
+  if (lastKey !== todayKey) {
+    _seasonBlocked = true;
+    showSeasonOverlay();
+  }
+}
+
+function showSeasonOverlay() {
+  const el = document.getElementById('season-overlay');
+  if (el) el.style.display = 'flex';
+}
+
+function confirmSeasonRestart() {
+  // Si c'est un reset global admin, on propage l'ID de reset
+  const gid = localStorage.getItem('barrault_pendingGlobalReset');
+  if (gid) {
+    localStorage.setItem('barrault_pendingReset', gid);
+    localStorage.removeItem('barrault_pendingGlobalReset');
+  }
+  if (typeof confirmRestart === 'function') confirmRestart();
+}
 
 async function saveScore() {
+  checkSeasonChange();
+  if (_seasonBlocked) return;
   if (!_db) return;
   const name = getPlayerName(); if (!name) return;
 
@@ -130,6 +163,7 @@ async function saveScore() {
 
 // Présence (money + lastActive) toutes les 30 s — dans la collection du jour
 async function savePresence() {
+  if (_seasonBlocked) return;
   if (!_db || !getPlayerName()) return;
   try {
     await getDailyCollection().doc(getPlayerId()).set({
@@ -297,7 +331,7 @@ async function openLeaderboard() {
     return;
   }
   try {
-    const snap   = await getDailyCollection().orderBy('score','desc').limit(5).get();
+    const snap   = await getDailyCollection().orderBy('score','desc').limit(10).get();
     const scores = snap.docs.map(d => ({ id:d.id, ...d.data() }));
     renderLeaderboard(scores, content);
   } catch(e) {
@@ -399,11 +433,8 @@ function renderLeaderboard(scores, container) {
         <div class="lb-rest-main">
           <span class="lb-rest-rank">#${rank}</span>
           <span class="lb-rest-name">${escHtml(s.playerName)}${isMe?' <span class="lb-you">(toi)</span>':''}</span>
-          ${lvlBadge}
           <span class="lb-rest-score">${fmtScore(s.score)}</span>
         </div>
-        ${statsLine}
-        ${tresoBadge ? `<div class="lb-attack-row">${tresoBadge}${attackBtn}</div>` : (attackBtn ? `<div class="lb-attack-row">${attackBtn}</div>` : '')}
       </div>`;
     }
   });
@@ -485,15 +516,10 @@ async function checkGlobalReset() {
     const resetId    = doc.data().resetId || 0;
     const lastReset  = parseInt(localStorage.getItem('barrault_lastReset') || '0');
     if (resetId > lastReset) {
-      localStorage.setItem('barrault_lastReset', resetId.toString());
-      // Bloquer saveGame() sur beforeunload (sinon il réécrit la save avant le reload)
-      if (typeof _restarting !== 'undefined') _restarting = true;
-      // Wipe complet
-      localStorage.removeItem('barrault_save_v2');
-      localStorage.removeItem('barrault_pseudo');
-      localStorage.removeItem('barrault_uid');
-      localStorage.removeItem('barrault_lastAttack');
-      location.reload();
+      // Stocker l'ID pour confirmation par le joueur (via overlay saison)
+      localStorage.setItem('barrault_pendingGlobalReset', resetId.toString());
+      _seasonBlocked = true;
+      showSeasonOverlay();
     }
   } catch(e) {}
 }
@@ -504,6 +530,7 @@ window.addEventListener('load', () => {
   // Vérif reset global avant tout
   setTimeout(async () => {
     await checkGlobalReset();
+    checkSeasonChange();
     showPseudoModal();
     savePresence();
     listenForAttacks();
