@@ -227,6 +227,12 @@ function confirmRestart() {
   localStorage.removeItem(SAVE_KEY);
   localStorage.removeItem('barrault_pseudo');
   localStorage.removeItem('barrault_uid');
+  const _d = new Date();
+  const _day = _d.getDay();
+  const _diff = (_day === 0) ? -6 : 1 - _day;
+  const _mon = new Date(_d); _mon.setDate(_d.getDate() + _diff);
+  const _weekKey = 'scores_' + _mon.getFullYear() + '-' + String(_mon.getMonth()+1).padStart(2,'0') + '-' + String(_mon.getDate()).padStart(2,'0');
+  localStorage.setItem('barrault_lastSeasonKey', _weekKey);
   location.reload();
 }
 

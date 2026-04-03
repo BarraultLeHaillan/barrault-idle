@@ -379,7 +379,9 @@
     const pending = localStorage.getItem('barrault_pendingReset');
     if (pending) {
       const d = new Date();
-      const todayKey = 'scores_'+d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+      const _day = d.getDay(), _diff = (_day === 0) ? -6 : 1 - _day;
+      const _mon = new Date(d); _mon.setDate(d.getDate() + _diff);
+      const todayKey = 'scores_'+_mon.getFullYear()+'-'+String(_mon.getMonth()+1).padStart(2,'0')+'-'+String(_mon.getDate()).padStart(2,'0');
       localStorage.clear();
       localStorage.setItem('barrault_lastReset', pending);
       localStorage.setItem('barrault_lastSeasonKey', todayKey);

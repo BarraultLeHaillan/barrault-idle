@@ -23,10 +23,14 @@ function initFirebase() {
   }
 }
 
-// ── Collection du jour (reset automatique à minuit) ────
+// ── Collection de la semaine (reset automatique le lundi à minuit) ────
 function getTodayKey() {
   const d = new Date();
-  return `scores_${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+  const day = d.getDay(); // 0=dimanche, 1=lundi
+  const diff = (day === 0) ? -6 : 1 - day;
+  const monday = new Date(d);
+  monday.setDate(d.getDate() + diff);
+  return `scores_${monday.getFullYear()}-${String(monday.getMonth()+1).padStart(2,'0')}-${String(monday.getDate()).padStart(2,'0')}`;
 }
 function getDailyCollection() { return _db.collection(getTodayKey()); }
 
@@ -339,18 +343,21 @@ function renderLeaderboard(scores, container) {
     return;
   }
 
-  // Date + timer reset
+  // Date + timer reset (hebdomadaire, lundi à minuit)
   const d = new Date();
   const dateLabel = d.toLocaleDateString('fr-FR', { weekday:'long', day:'numeric', month:'long' });
-  const midnight  = new Date(d); midnight.setHours(24,0,0,0);
-  const secsLeft  = Math.floor((midnight - d) / 1000);
-  const hh = String(Math.floor(secsLeft/3600)).padStart(2,'0');
-  const mm = String(Math.floor((secsLeft%3600)/60)).padStart(2,'0');
-  const ss = String(secsLeft%60).padStart(2,'0');
+  const dayN = d.getDay();
+  const daysUntilMonday = dayN === 1 ? 7 : (8 - dayN) % 7;
+  const nextMonday = new Date(d); nextMonday.setDate(d.getDate() + daysUntilMonday); nextMonday.setHours(0,0,0,0);
+  const secsLeft  = Math.floor((nextMonday - d) / 1000);
+  const dd = Math.floor(secsLeft / 86400);
+  const hh = String(Math.floor((secsLeft % 86400) / 3600)).padStart(2,'0');
+  const mm = String(Math.floor((secsLeft % 3600) / 60)).padStart(2,'0');
+  const ss = String(secsLeft % 60).padStart(2,'0');
 
   // Barre cooldown attaque
   const cdRem = cooldownRemaining();
-  let html = `<div class="lb-date-badge">📅 ${dateLabel} — reset dans <span id="lb-reset-timer">${hh}:${mm}:${ss}</span></div>`;
+  let html = `<div class="lb-date-badge">📅 ${dateLabel} — reset dans <span id="lb-reset-timer">${dd > 0 ? dd+'j ' : ''}${hh}:${mm}:${ss}</span></div>`;
   html += `<div class="lb-attack-header">`;
   if (cdRem) {
     html += `<span class="lb-cd-badge">⏳ Prochain raid dans ${cdRem}</span>`;
@@ -437,12 +444,16 @@ function renderLeaderboard(scores, container) {
   window._lbResetInterval = setInterval(() => {
     const el = document.getElementById('lb-reset-timer');
     if (!el) { clearInterval(window._lbResetInterval); return; }
-    const now  = new Date(), mid = new Date(now); mid.setHours(24,0,0,0);
-    const secs = Math.max(0, Math.floor((mid - now) / 1000));
-    const h = String(Math.floor(secs/3600)).padStart(2,'0');
-    const m = String(Math.floor((secs%3600)/60)).padStart(2,'0');
-    const s = String(secs%60).padStart(2,'0');
-    el.textContent = `${h}:${m}:${s}`;
+    const now = new Date();
+    const dn  = now.getDay();
+    const dLeft = dn === 1 ? 7 : (8 - dn) % 7;
+    const mon = new Date(now); mon.setDate(now.getDate() + dLeft); mon.setHours(0,0,0,0);
+    const secs = Math.max(0, Math.floor((mon - now) / 1000));
+    const d = Math.floor(secs / 86400);
+    const h = String(Math.floor((secs % 86400) / 3600)).padStart(2,'0');
+    const m = String(Math.floor((secs % 3600) / 60)).padStart(2,'0');
+    const s = String(secs % 60).padStart(2,'0');
+    el.textContent = d > 0 ? `${d}j ${h}:${m}:${s}` : `${h}:${m}:${s}`;
   }, 1000);
 
   // Attacher les listeners attaque
